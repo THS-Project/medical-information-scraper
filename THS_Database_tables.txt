@@ -1,0 +1,48 @@
+CREATE TABLE IF NOT EXISTS topic(
+    tid SERIAL PRIMARY KEY UNIQUE,
+    topic varchar(100)
+);
+
+CREATE TABLE IF NOT EXISTS keyword(
+    kid SERIAL PRIMARY KEY UNIQUE,
+    keyword varchar(30)
+);
+
+CREATE TABLE IF NOT EXISTS author(
+    aid SERIAL PRIMARY KEY UNIQUE,
+    fname varchar(20),
+    lname varchar(20)
+);
+
+CREATE TABLE IF NOT EXISTS research(
+    rid SERIAL PRIMARY KEY UNIQUE,
+    title varchar(100),
+    context varchar,
+    doi varchar(100),
+    reference varchar(250),
+    fullpaper boolean DEFAULT FALSE
+);
+
+CREATE TABLE IF NOT EXISTS partOf(
+    aid integer NOT NULL REFERENCES author(aid),
+    rid integer NOT NULL REFERENCES research(rid),
+    PRIMARY KEY (aid, rid)
+);
+
+CREATE TABLE IF NOT EXISTS contains(
+    kid integer NOT NULL REFERENCES keyword(kid),
+    rid integer NOT NULL REFERENCES research(rid),
+    PRIMARY KEY (kid, rid)
+);
+
+CREATE TABLE IF NOT EXISTS has(
+    tid integer NOT NULL REFERENCES topic(tid),
+    rid integer NOT NULL REFERENCES research(rid),
+    PRIMARY KEY (tid, rid)
+);
+
+CREATE TABLE IF NOT EXISTS chunks(
+    cid serial PRIMARY KEY UNIQUE,
+    rid integer NOT NULL REFERENCES research(rid),
+    chunk varchar
+);
