@@ -72,11 +72,19 @@ def research():
     else:
         return jsonify("Method is not allowed"), 405
 
-@app.route('/research/<id>')
-def research_by_id():
-    return ResearchController().getResearchbyId()
+@app.route('/research/<id>', methods=['GET', 'PUT', 'DELETE'])
+def research_by_id(rid):
+    if request.method == 'GET':
+        return ResearchController().getResearchById(rid)
 
+    elif request.method == 'PUT':
+        return ResearchController().updateResearch(rid)
 
+    elif request.method == 'DELETE':
+        return ResearchController().deleteResearch(rid)
+
+    else:
+        return jsonify("Method is not allowed"), 405
 
 """
 ===============================
