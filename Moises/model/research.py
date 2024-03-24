@@ -88,4 +88,30 @@ class ResearchDAO:
                 cur.close()
                 self.db.close()
 
+    """
+    ==============================
+                DELETE
+    ==============================
+    """
+
+    def deleteResearch(self, rid):
+        try:
+            cur = self.db.connection.cursor()
+            query = """DELETE FROM research WHERE rid = %s"""
+            query_values = (rid, )
+            cur.execute(query, query_values)
+            row_count = cur.rowcount
+            self.db.connection.commit()
+
+        except(Exception, psycopg2.Error) as error:
+            print("Error executing updateResearch", error)
+            self.db.connection = None
+
+        finally:
+            if self.db.connection is not None:
+                cur.close()
+                self.db.close()
+                return row_count != 0
+
+
 
