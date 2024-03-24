@@ -46,17 +46,19 @@ class ResearchDAO:
     def createResearch(self, title, context, doi, reference, fullpaper):
         try:
             cur = self.db.connection.cursor()
-            query = """SELECT * FROM research WHERE rid = %s"""
-            cur.execute(query, (id,))
+            query = """INSERT INTO research(rid, title, context, doi, reference, fullpaper)
+                        VALUES(DEFAULT, %s, %s, %s, %s, %s) RETURNING rid"""
+            query_values = (title, context, doi, reference, fullpaper)
+            cur.execute(query, query_values)
             self.db.connection.commit()
 
         except(Exception, psycopg2.Error) as error:
-            print("Error executing getResearchById", error)
+            print("Error executing createResearch", error)
             self.db.connection = None
 
         finally:
             if self.db.connection is not None:
-                result = cur.fetchone()
+                rid = cur.fetchone()
                 cur.close()
                 self.db.close()
-                return result
+                return rid

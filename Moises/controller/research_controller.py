@@ -40,11 +40,14 @@ class ResearchController:
     ============================
     """
 
-    def createResearch(self):
+    def createResearch(self, json):
         dao = ResearchDAO()
-        research_list = dao.getAllResearch()
-        research = [self.build_research_dict(row) for row in research_list]
-        return jsonify(research), 400
+        research = (json['title'], json['context'], json['doi'], json['reference'], json['fullpaper'])
+        rid = dao.createResearch(research[0], research[1], research[2], research[3], research[4])
+        if not rid:
+            return jsonify("Research could not be created"), 400
+        research_dict = self.build_research_dict((rid) + research)
+        return jsonify(research_dict), 400
 
     """
     ===========================

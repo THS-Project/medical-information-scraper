@@ -67,12 +67,12 @@ def research():
         return ResearchController().getAllResearchs()
 
     elif request.method == 'POST':
-        return ResearchController().createResearch()
+        return ResearchController().createResearch(request.json)
 
     else:
         return jsonify("Method is not allowed"), 405
 
-@app.route('/research/<id>', methods=['GET', 'PUT', 'DELETE'])
+@app.route('/research/<rid>', methods=['GET', 'PUT', 'DELETE'])
 def research_by_id(rid):
     if request.method == 'GET':
         return ResearchController().getResearchById(rid)
