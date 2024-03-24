@@ -3,6 +3,7 @@ from controller.research_controller import ResearchController
 
 app = Flask(__name__)
 
+
 @app.route('/')
 def home_page():
     return "<p>Hello World</p>"
@@ -14,15 +15,11 @@ def home_page():
 ===============================
 """
 
-
-
 """
 ===============================
             Chunks
 ===============================
 """
-
-
 
 """
 ===============================
@@ -30,14 +27,11 @@ def home_page():
 ===============================
 """
 
-
 """
 ============================
             Has
 ============================
 """
-
-
 
 """
 ===============================
@@ -45,21 +39,18 @@ def home_page():
 ===============================
 """
 
-
-
 """
 ===============================
             PartOf
 ===============================
 """
 
-
-
 """
 =================================
             Research
 =================================
 """
+
 
 @app.route('/research', methods=['GET', 'POST'])
 def research():
@@ -71,6 +62,7 @@ def research():
 
     else:
         return jsonify("Method is not allowed"), 405
+
 
 @app.route('/research/<rid>', methods=['GET', 'PUT', 'DELETE'])
 def research_by_id(rid):
@@ -86,13 +78,12 @@ def research_by_id(rid):
     else:
         return jsonify("Method is not allowed"), 405
 
+
 """
 ===============================
             Topic
 ===============================
 """
-
-
 
 if __name__ == "__main__":
     app.run(debug=True)

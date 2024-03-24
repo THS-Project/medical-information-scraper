@@ -91,7 +91,6 @@ class ResearchController:
             research_dict = self.build_research_dict(research)
             return jsonify(research_dict), 200
 
-
     """
     ==============================
                 DELETE
@@ -99,7 +98,6 @@ class ResearchController:
     """
 
     def deleteResearch(self, rid):
-
         if not rid.isnumeric():
             return jsonify(f"'{rid}' is not a valid input"), 400
 
@@ -116,5 +114,3 @@ class ResearchController:
                 return jsonify("Error deleting research"), 400
             else:
                 return jsonify(f"Deleted research with id: {rid}"), 200
-
-
