@@ -2,6 +2,14 @@ from flask import jsonify
 from Moises.model.research import ResearchDAO
 
 
+def validate_json(json):
+    if 'title' not in json or 'context' not in json or 'doi' \
+            not in json or 'reference' not in json or 'fullpaper' not in json:
+        return None
+    else:
+        return "Valid"
+
+
 class ResearchController:
     @staticmethod
     def build_research_dict(elements):
@@ -30,9 +38,9 @@ class ResearchController:
         dao = ResearchDAO()
         research_result = dao.getResearchById(rid)
         if not research_result:
-            return jsonify(f"Research with id '{rid}' does not exist"), 404
+            return jsonify(f"Research with id '{rid}' was not found"), 404
         research = self.build_research_dict(research_result)
-        return jsonify(research), 400
+        return jsonify(research), 200
 
     """
     ============================
@@ -41,13 +49,19 @@ class ResearchController:
     """
 
     def createResearch(self, json):
+
+        valid = validate_json(json)
+
+        if not valid:
+            return jsonify(f"Could not create research. Missing attributes."), 400
+
         dao = ResearchDAO()
         research = (json['title'], json['context'], json['doi'], json['reference'], json['fullpaper'])
         rid = dao.createResearch(research[0], research[1], research[2], research[3], research[4])
         if not rid:
             return jsonify("Research could not be created"), 400
         research_dict = self.build_research_dict((rid) + research)
-        return jsonify(research_dict), 400
+        return jsonify(research_dict), 200
 
     """
     ===========================
@@ -55,8 +69,24 @@ class ResearchController:
     ===========================
     """
 
-    def getAllResearchs(self):
+    def updateResearch(self, rid, json):
+        if not rid.isnumeric():
+            return jsonify(f"'{rid}' is not a valid input"), 400
+
+        valid = validate_json(json)
+
+        if not valid:
+            return jsonify(f"Could not update research. Missing attributes."), 400
+
         dao = ResearchDAO()
-        research_list = dao.getAllResearch()
-        research = [self.build_research_dict(row) for row in research_list]
-        return jsonify(research), 400
+        get_id = dao.getResearchById(rid)
+
+        if not get_id:
+            return jsonify(f"Research with id '{rid}' was not found"), 404
+
+        else:
+            dao = ResearchDAO()
+            research = (rid, json['title'], json['context'], json['doi'], json['reference'], json['fullpaper'])
+            dao.updateResearch(research[0], research[1], research[2], research[3], research[4], research[5])
+            research_dict = self.build_research_dict(research)
+            return jsonify(research_dict), 200

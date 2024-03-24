@@ -78,7 +78,7 @@ def research_by_id(rid):
         return ResearchController().getResearchById(rid)
 
     elif request.method == 'PUT':
-        return ResearchController().updateResearch(rid)
+        return ResearchController().updateResearch(rid, request.json)
 
     elif request.method == 'DELETE':
         return ResearchController().deleteResearch(rid)

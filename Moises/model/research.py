@@ -62,3 +62,30 @@ class ResearchDAO:
                 cur.close()
                 self.db.close()
                 return rid
+
+
+    """
+    ===========================
+                PUT
+    ===========================
+    """
+
+    def updateResearch(self, rid, title, context, doi, reference, fullpaper):
+        try:
+            cur = self.db.connection.cursor()
+            query = """UPDATE research set title = %s, context = %s, doi = %s, reference = %s, fullpaper = %s
+                        WHERE rid = %s"""
+            query_values = (title, context, doi, reference, fullpaper, rid)
+            cur.execute(query, query_values)
+            self.db.connection.commit()
+
+        except(Exception, psycopg2.Error) as error:
+            print("Error executing updateResearch", error)
+            self.db.connection = None
+
+        finally:
+            if self.db.connection is not None:
+                cur.close()
+                self.db.close()
+
+
