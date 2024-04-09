@@ -5,10 +5,11 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver import ActionChains
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.keys import Keys
 
+from bs4 import BeautifulSoup
+import requests
+
+nih = 'https://www.ncbi.nlm.nih.gov'
 
 def pubmed_scrapper(url):
     options = webdriver.ChromeOptions()
@@ -35,6 +36,32 @@ def pubmed_scrapper(url):
         create_csv(result)
 
 
+def soup_pubmed_scrapper(url):
+    page = requests.get(url)
+
+    soup = BeautifulSoup(page.content, 'html.parser')
+
+    # result = [title, context, doi, reference, fp, authors]
+    result = soup.findAll('a',  href=True)
+    links = []
+    for element in result:
+        if element['href'].__contains__('/articles'):
+            l_paper = {'title': element.text, 'link': nih + element['href']}
+            links.append(l_paper)
+    print(links)
+
+
+    print('='*30)
+    print("Test\n")
+    for i in links:
+        page = requests.get(i['link'], headers={'User-Agent':'Mozilla/5.0'})
+        print(page.text)
+        break
+    # create_csv(result)
+
+
+
+
 def create_csv(data):
     with open('data/research_test.csv', 'w', newline='', encoding="utf-8") as file:
         writer = csv.writer(file)
@@ -44,11 +71,12 @@ def create_csv(data):
 
 
 if __name__ == "__main__":
-    link = "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9305720/"
+    # link = "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9305720/"
+    link = "https://ncbi.nlm.nih.gov/pmc/?term=covid"
     print('=' * 40)
     print(' ' * 11, "Starting scraper")
     print('=' * 40)
-    pubmed_scrapper(link)
+    soup_pubmed_scrapper(link)
     print('=' * 40)
     print(' ' * 10, "Finished Execution")
     print('=' * 40)
