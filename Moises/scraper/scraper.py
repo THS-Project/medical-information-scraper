@@ -6,10 +6,13 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-from bs4 import BeautifulSoup
 import requests
+import re
+from bs4 import BeautifulSoup
 
 nih = 'https://www.ncbi.nlm.nih.gov'
+term = ['covid vaccine', 'covid treatment', 'covid symptoms', 'covid sickness']
+
 
 def pubmed_scrapper(url):
     options = webdriver.ChromeOptions()
@@ -33,10 +36,11 @@ def pubmed_scrapper(url):
         result = [title, context, doi, reference, fp, authors]
 
         print(result)
-        create_csv(result)
+        create_csv("text", result)
 
 
-def soup_pubmed_scrapper(url):
+def soup_pubmed_scrapper(term):
+    url = f"https://ncbi.nlm.nih.gov/pmc/?term={term}"
     page = requests.get(url)
 
     soup = BeautifulSoup(page.content, 'html.parser')
@@ -50,33 +54,67 @@ def soup_pubmed_scrapper(url):
             links.append(l_paper)
     print(links)
 
-
+    temp = []
     print('='*30)
-    print("Test\n")
+    print("Get data from site")
+
+    print('=' * 30)
     for i in links:
+        if i['link'].__contains__('pdf') or i['link'].__contains__('classic'):
+            continue
+
+        title = i['title']
         page = requests.get(i['link'], headers={'User-Agent':'Mozilla/5.0'})
-        print(page.text)
-        break
-    # create_csv(result)
+        soup = BeautifulSoup(page.content, 'html.parser')
+        abstract = soup.find(attrs={'id':re.compile("abstract")})
+        if not abstract:
+            abstract = soup.find(attrs={'id':re.compile("abs")})
+
+        if abstract:
+            abstract = abstract.text
+
+        content = soup.contents
+        text = soup.text.replace("\n", "")
+        # text = soup.findAll('div', id=re.compile("sec-"))
+        # extract = ''
+        # for element in text:
+        #     extract += element.text
+        # print(text)
+        print(i['link'])
+        list_temp = [title, i['link'], abstract, content, text]
+        # print(list_temp)
+        temp.append(list_temp)
+
+    create_csv(term, temp)
 
 
-
-
-def create_csv(data):
-    with open('data/research_test.csv', 'w', newline='', encoding="utf-8") as file:
+def create_csv(term, data):
+    csv_file = f'research_{term}'
+    with open(f'data/{csv_file}.csv', 'w', newline='', encoding="utf-8") as file:
         writer = csv.writer(file)
-        header = ['Title', 'Context', 'doi', 'reference', 'Full Paper', 'Authors']
+        header = ['Title', 'Link', 'Abstract', 'XML', 'Text']
         writer.writerow(header)
-        writer.writerow(data)
+        for i in data:
+            writer.writerow(i)
+        print(f'Successfully created file')
+
+
+# def create_csv(data):
+#     with open('data/research_test.csv', 'w', newline='', encoding="utf-8") as file:
+#         writer = csv.writer(file)
+#         header = ['Title', 'Context', 'doi', 'reference', 'Full Paper', 'Authors']
+#         writer.writerow(header)
+#         writer.writerow(data)
 
 
 if __name__ == "__main__":
     # link = "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9305720/"
-    link = "https://ncbi.nlm.nih.gov/pmc/?term=covid"
+    # link = f"https://ncbi.nlm.nih.gov/pmc/?term={term}"
     print('=' * 40)
     print(' ' * 11, "Starting scraper")
     print('=' * 40)
-    soup_pubmed_scrapper(link)
+    for i in term:
+        soup_pubmed_scrapper(i)
     print('=' * 40)
     print(' ' * 10, "Finished Execution")
     print('=' * 40)
