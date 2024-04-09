@@ -46,10 +46,13 @@ def soup_pubmed_scrapper(term):
     soup = BeautifulSoup(page.content, 'html.parser')
 
     # result = [title, context, doi, reference, fp, authors]
+
+    # Get all links that are on the site that are not copies or pdfs
     result = soup.findAll('a',  href=True)
     links = []
     for element in result:
-        if element['href'].__contains__('/articles'):
+        if element['href'].__contains__('/articles')\
+                and not element['href'].__contains__('pdf') and not element['href'].__contains__('/classic'):
             l_paper = {'title': element.text, 'link': nih + element['href']}
             links.append(l_paper)
     print(links)
@@ -57,8 +60,8 @@ def soup_pubmed_scrapper(term):
     temp = []
     print('='*30)
     print("Get data from site")
-
     print('=' * 30)
+
     for i in links:
         if i['link'].__contains__('pdf') or i['link'].__contains__('classic'):
             continue
@@ -75,11 +78,14 @@ def soup_pubmed_scrapper(term):
 
         content = soup.contents
         text = soup.text.replace("\n", "")
+
+    # Useful for getting sections
         # text = soup.findAll('div', id=re.compile("sec-"))
         # extract = ''
         # for element in text:
         #     extract += element.text
         # print(text)
+
         print(i['link'])
         list_temp = [title, i['link'], abstract, content, text]
         # print(list_temp)
