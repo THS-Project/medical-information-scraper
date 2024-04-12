@@ -1,5 +1,7 @@
 from flask import Flask, request, jsonify
 from controller.research_controller import ResearchController
+from controller.topic_controller import TopicController
+
 
 app = Flask(__name__)
 
@@ -84,6 +86,29 @@ def research_by_id(rid):
             Topic
 ===============================
 """
+@app.route('/topic', methods=['GET', 'POST'])
+def topic():
+    if request.method == 'GET':
+        return TopicController().getAllTopics()
+
+    elif request.method == 'POST':
+        return TopicController().createTopic(request.json)
+
+    else:
+        return jsonify("Method is not allowed"), 405
+
+
+@app.route('/topic/<tid>', methods=['GET', 'PUT'])
+def topic_by_id(tid):
+    if request.method == 'GET':
+        return TopicController().getTopicById(tid)
+
+    elif request.method == 'PUT':
+        return TopicController().updateTopic(tid, request.json)
+
+    else:
+        return jsonify("Method is not allowed"), 405
+
 
 if __name__ == "__main__":
     app.run(debug=True)
