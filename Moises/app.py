@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify
 from controller.research_controller import ResearchController
 from controller.author_controller import AuthorController
 from controller.topic_controller import TopicController
+from controller.keyword_controller import KeywordController
+
 
 
 app = Flask(__name__)
@@ -64,6 +66,31 @@ def author_by_id(aid):
             Keyword
 ===============================
 """
+
+@app.route('/keyword', methods=['GET', 'POST'])
+def keyword():
+    if request.method == 'GET':
+        return KeywordController().getAllKeywords()
+
+    elif request.method == 'POST':
+        return KeywordController().createKeyword(request.json)
+
+    else:
+        return jsonify("Method is not allowed"), 405
+
+@app.route('/keyword/<kid>', methods=['GET', 'PUT', 'DELETE'])
+def keyword_by_id(kid):
+    if request.method == 'GET':
+        return KeywordController().getKeywordById(kid)
+
+    elif request.method == 'PUT':
+        return KeywordController().updateKeyword(kid, request.json)
+
+    elif request.method == 'DELETE':
+        return KeywordController().deleteKeyword(kid)
+
+    else:
+        return jsonify("Method is not allowed"), 405
 
 """
 ===============================
