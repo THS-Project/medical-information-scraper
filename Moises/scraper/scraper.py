@@ -40,14 +40,11 @@ def process_links(links):
 def soup_pubmed_scrapper(term):
     url = f"https://ncbi.nlm.nih.gov/pmc/?term={term}"
 
-    # Browser to use selenium to click buttons
-    # options = webdriver.ChromeOptions()
-    # options.add_argument('--start-maximized')
     links = []
     with webdriver.Chrome() as driver:
         driver.get(url)
 
-        # Iterate to X amount of pages
+        # Iterate to n amount of pages
         for i in range(2):
             count = 0
             WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//*[@id="maincontent"]')))
