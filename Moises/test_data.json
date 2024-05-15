@@ -1,0 +1,30 @@
+[
+  {
+    "title": "Research 1",
+    "context": "Context of Research 1",
+    "doi": "doi_1",
+    "reference": ["reference_1", "reference_2"],
+    "fullpaper": true,
+    "keywords": ["keyword1", "keyword2"],
+    "authors": ["John Doe", "Jane Smith"],
+    "topics": ["topic1", "topic2"],
+    "chunks": [
+      {"cid": 1, "chunk": "chunk1"},
+      {"cid": 2, "chunk": "chunk2"}
+    ]
+  },
+  {
+    "title": "Research 2",
+    "context": "Context of Research 2",
+    "doi": "doi_2",
+    "reference": ["reference_3", "reference_4"],
+    "fullpaper": true,
+    "keywords": ["keyword3", "keyword4"],
+    "authors": ["Lucy Chen", "Jane Smith"],
+    "topics": ["topic2", "topic3"],
+    "chunks": [
+      {"cid": 3, "chunk": "chunk3"},
+      {"cid": 4, "chunk": "chunk4"}
+    ]
+  }
+]
