@@ -28,7 +28,7 @@ class TopicController:
         dao = TopicDAO()
         topic_list = dao.getAllTopics()
         topic = [self.build_topic_dict(row) for row in topic_list]
-        return jsonify(topic), 400
+        return jsonify(topic), 200
 
     def getTopicById(self, tid):
         dao = TopicDAO()
@@ -43,23 +43,23 @@ class TopicController:
                 POST
     ============================
     """
-
     def createTopic(self, json):
-
         valid = validate_json(json)
 
         if not valid:
             return jsonify(f"Could not create topic. Missing attributes."), 400
 
         dao = TopicDAO()
-        topic = (json['topic'],)
+        topic = json.get('topic')
+        if not topic:
+            return jsonify("Topic is missing"), 400
+
         tid = dao.createTopic(topic)
-        print(tid)
         if not tid:
             return jsonify("Topic could not be created"), 400
-        topic_dict = self.build_topic_dict((tid) + topic)
-        return jsonify(topic_dict), 200
 
+        topic_dict = self.build_topic_dict([tid, topic])
+        return jsonify(topic_dict), 200
 
     """
     ===========================
@@ -68,6 +68,7 @@ class TopicController:
     """
 
     def updateTopic(self, tid, json):
+
         if not tid.isnumeric():
             return jsonify(f"'{tid}' is not a valid input"), 400
 
@@ -85,7 +86,11 @@ class TopicController:
             dao = TopicDAO()
             topic = (tid, json['topic'])
             dao.updateTopic(topic[0], topic[1])
-            print(topic)
             topic_dict = self.build_topic_dict(topic)
             return jsonify(topic_dict), 200
 
+    """
+    ==============================
+                DELETE
+    ==============================
+    """

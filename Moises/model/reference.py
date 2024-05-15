@@ -1,7 +1,7 @@
 from Moises.model.db import Database
 import psycopg2
 
-class TopicDAO:
+class ReferenceDAO:
     def __init__(self):
         self.db = Database()
 
@@ -11,22 +11,22 @@ class TopicDAO:
     ===========================
     """
 
-    def getAllTopics(self):
+    def getAllReferences(self):
         cur = self.db.connection.cursor()
-        query = """SELECT * FROM topic"""
+        query = """SELECT * FROM reference"""
         cur.execute(query)
-        topic_list = [row for row in cur]
-        return topic_list
+        reference_list = [row for row in cur]
+        return reference_list
 
-    def getTopicById(self, tid):
+    def getReferenceById(self, ref_id):
         try:
             cur = self.db.connection.cursor()
-            query = """SELECT * FROM topic WHERE tid = %s"""
-            cur.execute(query, (tid,))
+            query = """SELECT * FROM reference WHERE ref_id = %s"""
+            cur.execute(query, (ref_id,))
             self.db.connection.commit()
 
         except(Exception, psycopg2.Error) as error:
-            print("Error executing getTopicById", error)
+            print("Error executing getReferenceById", error)
             self.db.connection = None
 
         finally:
@@ -42,33 +42,33 @@ class TopicDAO:
     ============================
     """
 
-    def createTopic(self, topic):
+    def createReference(self, reference):
         try:
             cur = self.db.connection.cursor()
 
-            # check if topic already exists
-            query_check = """SELECT tid from topic where topic = %s"""
-            cur.execute(query_check, (topic, ))
-            existing_topic = cur.fetchone()
+            # check if reference already exists
+            query_check = """SELECT ref_id from reference where reference = %s"""
+            cur.execute(query_check, (reference, ))
+            existing_reference = cur.fetchone()
 
-            # if topic already exists
-            if existing_topic:
-                print(f"Topic already exists with tid: {existing_topic[0]}")
-                return existing_topic[0]
+            # if reference already exists
+            if existing_reference:
+                print(f"Reference already exists with ref_id: {existing_reference[0]}")
+                return existing_reference[0]
 
-            # if topic does not exist
-            query = """INSERT INTO topic(tid, topic)
-                        VALUES(DEFAULT, %s) RETURNING tid"""
-            query_values = (topic,)
+            # if reference does not exist
+            query = """INSERT INTO reference(ref_id, reference)
+                        VALUES(DEFAULT, %s) RETURNING ref_id"""
+            query_values = (reference,)
             cur.execute(query, query_values)
             self.db.connection.commit()
-            tid = cur.fetchone()
-            return tid
+            ref_id = cur.fetchone()
+            return ref_id
 
 
 
         except(Exception, psycopg2.Error) as error:
-            print("Error executing createTopic", error)
+            print("Error executing createReference", error)
             self.db.connection = None
 
         finally:
@@ -82,17 +82,17 @@ class TopicDAO:
     ===========================
     """
 
-    def updateTopic(self, tid, topic):
+    def updateReference(self, ref_id, reference):
         try:
             cur = self.db.connection.cursor()
-            query = """UPDATE topic set topic = %s
-                        WHERE tid = %s"""
-            query_values = (topic, tid)
+            query = """UPDATE reference set reference = %s
+                        WHERE ref_id = %s"""
+            query_values = (reference, ref_id)
             cur.execute(query, query_values)
             self.db.connection.commit()
 
         except(Exception, psycopg2.Error) as error:
-            print("Error executing updateTopic", error)
+            print("Error executing updateReference", error)
             self.db.connection = None
 
         finally:

@@ -3,8 +3,8 @@ from Moises.model.research import ResearchDAO
 
 
 def validate_json(json):
-    required_fields = ['title', 'context', 'doi', 'fullpaper']
-    if not all(field in json for field in required_fields):
+    if 'title' not in json or 'context' not in json or 'doi' \
+            not in json or 'fullpaper' not in json:
         return None
     else:
         return "Valid"
@@ -13,20 +13,25 @@ def validate_json(json):
 class ResearchController:
     @staticmethod
     def build_research_dict(elements):
-        result = {
-            "rid": elements[0],
-            "title": elements[1],
-            "context": elements[2],
-            "doi": elements[3],
-            "fullpaper": elements[4]
-        }
+        result = {"rid": elements[0],
+                  "title": elements[1],
+                  "context": elements[2],
+                  "doi": elements[3],
+                  "fullpaper": elements[4]
+                  }
         return result
+
+    """
+    ===========================
+                GET
+    ===========================
+    """
 
     def getAllResearchs(self):
         dao = ResearchDAO()
         research_list = dao.getAllResearch()
         research = [self.build_research_dict(row) for row in research_list]
-        return jsonify(research), 200
+        return jsonify(research), 400
 
     def getResearchById(self, rid):
         dao = ResearchDAO()
@@ -36,19 +41,20 @@ class ResearchController:
         research = self.build_research_dict(research_result)
         return jsonify(research), 200
 
+    """
+    ============================
+                POST
+    ============================
+    """
+
     def createResearch(self, json):
+
         valid = validate_json(json)
+
         if not valid:
-            return jsonify("Could not create research. Missing attributes."), 400
+            return jsonify(f"Could not create research. Missing attributes."), 400
 
         dao = ResearchDAO()
-        existing_research = dao.getResearchByAttributes(
-            json['title'], json['context'], json['doi']
-        )
-        if existing_research:
-            return jsonify("Research already exists with the provided attributes"), 400
-
-        # Create the research if it does not already exist
         research = (json['title'], json['context'], json['doi'], json['fullpaper'])
         rid = dao.createResearch(research[0], research[1], research[2], research[3])
         if not rid:
@@ -56,7 +62,14 @@ class ResearchController:
         research_dict = self.build_research_dict((rid,) + research)
         return jsonify(research_dict), 200
 
+    """
+    ===========================
+                PUT
+    ===========================
+    """
+
     def updateResearch(self, rid, json):
+
         if not rid.isnumeric():
             return jsonify(f"'{rid}' is not a valid input"), 400
 
@@ -66,14 +79,22 @@ class ResearchController:
 
         if not valid:
             return jsonify(f"Could not update research. Missing attributes."), 400
+
         elif not get_id:
             return jsonify(f"Research with id '{rid}' was not found"), 404
 
-        # Update the research
-        research = (rid, json['title'], json['context'], json['doi'], json['fullpaper'])
-        dao.updateResearch(research[0], research[1], research[2], research[3], research[4])
-        research_dict = self.build_research_dict(research)
-        return jsonify(research_dict), 200
+        else:
+            dao = ResearchDAO()
+            research = (rid, json['title'], json['context'], json['doi'], json['fullpaper'])
+            dao.updateResearch(research[0], research[1], research[2], research[3], research[4])
+            research_dict = self.build_research_dict(research)
+            return jsonify(research_dict), 200
+
+    """
+    ==============================
+                DELETE
+    ==============================
+    """
 
     def deleteResearch(self, rid):
         if not rid.isnumeric():
@@ -85,8 +106,10 @@ class ResearchController:
         if not get_id:
             return jsonify(f"Research with id '{rid}' was not found"), 404
 
-        removed = dao.deleteResearch(rid)
-        if not removed:
-            return jsonify("Error deleting research"), 400
         else:
-            return jsonify(f"Deleted research with id: {rid}"), 200
+            dao = ResearchDAO()
+            removed = dao.deleteResearch(rid)
+            if not removed:
+                return jsonify("Error deleting research"), 400
+            else:
+                return jsonify(f"Deleted research with id: {rid}"), 200

@@ -3,6 +3,8 @@ from controller.research_controller import ResearchController
 from controller.author_controller import AuthorController
 from controller.topic_controller import TopicController
 from controller.keyword_controller import KeywordController
+from controller.reference_controller import ReferenceController
+
 
 
 
@@ -97,13 +99,47 @@ def keyword_by_id(kid):
             PartOf
 ===============================
 """
+"""
+=================================
+            Reference
+=================================
+"""
+@app.route('/reference', methods=['GET', 'POST'])
+def reference():
+    if request.method == 'GET':
+        return ReferenceController().getAllReferences()
+
+    elif request.method == 'POST':
+        return ReferenceController().createReference(request.json)
+
+    else:
+        return jsonify("Method is not allowed"), 405
+
+
+@app.route('/reference/<ref_id>', methods=['GET', 'PUT'])
+def reference_by_id(ref_id):
+    if request.method == 'GET':
+        return ReferenceController().getReferenceById(ref_id)
+
+    elif request.method == 'PUT':
+        return ReferenceController().updateReference(ref_id, request.json)
+
+    else:
+        return jsonify("Method is not allowed"), 405
+
+
+"""
+=================================
+    Research_Reference 
+=================================
+"""
+
 
 """
 =================================
             Research
 =================================
 """
-
 
 @app.route('/research', methods=['GET', 'POST'])
 def research():

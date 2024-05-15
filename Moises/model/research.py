@@ -53,21 +53,43 @@ class ResearchDAO:
     def createResearch(self, title, context, doi, fullpaper):
         try:
             cur = self.db.connection.cursor()
-            query = """INSERT INTO research(title, context, doi, fullpaper)
-                        VALUES (%s, %s, %s, %s) RETURNING rid"""
+
+            # check if research already exists
+            query_check = """SELECT rid from research where title = %s AND context = %s
+             AND doi = %s AND fullpaper = %s"""
+            cur.execute(query_check, (title, context, doi, fullpaper))
+
+            # if another research has the same doi
+            query_check = """SELECT rid FROM research WHERE doi = %s"""
+            cur.execute(query_check, (doi,))
+
+
+            existing_research = cur.fetchone()
+
+            # if research already exists
+            if existing_research:
+                print(f"Research already exists with aid: {existing_research[0]}")
+                return existing_research[0]
+
+            # if research does not exist
+            query = """INSERT INTO research(rid, title, context, doi, fullpaper)
+                        VALUES(DEFAULT, %s, %s, %s, %s) RETURNING rid"""
             query_values = (title, context, doi, fullpaper)
             cur.execute(query, query_values)
-            rid = cur.fetchone()[0]
             self.db.connection.commit()
+            rid = cur.fetchone()
             return rid
 
-        except (Exception, psycopg2.Error) as error:
+
+
+        except(Exception, psycopg2.Error) as error:
             print("Error executing createResearch", error)
-            return None
+            self.db.connection = None
 
         finally:
             if self.db.connection is not None:
                 cur.close()
+                self.db.close()
 
     """
     ===========================
