@@ -3,7 +3,7 @@ from Moises.model.research import ResearchDAO
 
 
 def validate_json(json):
-    required_fields = ['title', 'context', 'doi', 'reference', 'fullpaper']
+    required_fields = ['title', 'context', 'doi', 'fullpaper']
     if not all(field in json for field in required_fields):
         return None
     else:
@@ -18,8 +18,7 @@ class ResearchController:
             "title": elements[1],
             "context": elements[2],
             "doi": elements[3],
-            "reference": elements[4],
-            "fullpaper": elements[5]
+            "fullpaper": elements[4]
         }
         return result
 
@@ -43,16 +42,15 @@ class ResearchController:
             return jsonify("Could not create research. Missing attributes."), 400
 
         dao = ResearchDAO()
-        # Check if research with the same title, context, doi, and reference already exists
         existing_research = dao.getResearchByAttributes(
-            json['title'], json['context'], json['doi'], json['reference']
+            json['title'], json['context'], json['doi']
         )
         if existing_research:
             return jsonify("Research already exists with the provided attributes"), 400
 
         # Create the research if it does not already exist
-        research = (json['title'], json['context'], json['doi'], json['reference'], json['fullpaper'])
-        rid = dao.createResearch(research[0], research[1], research[2], research[3], research[4])
+        research = (json['title'], json['context'], json['doi'], json['fullpaper'])
+        rid = dao.createResearch(research[0], research[1], research[2], research[3])
         if not rid:
             return jsonify("Research could not be created"), 400
         research_dict = self.build_research_dict((rid,) + research)
@@ -72,8 +70,8 @@ class ResearchController:
             return jsonify(f"Research with id '{rid}' was not found"), 404
 
         # Update the research
-        research = (rid, json['title'], json['context'], json['doi'], json['reference'], json['fullpaper'])
-        dao.updateResearch(research[0], research[1], research[2], research[3], research[4], research[5])
+        research = (rid, json['title'], json['context'], json['doi'], json['fullpaper'])
+        dao.updateResearch(research[0], research[1], research[2], research[3], research[4])
         research_dict = self.build_research_dict(research)
         return jsonify(research_dict), 200
 

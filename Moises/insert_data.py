@@ -1,5 +1,4 @@
 import json
-import psycopg2
 from Moises.model.db import Database
 from Moises.model.author import AuthorDAO
 from Moises.model.keyword import KeywordDAO
@@ -26,7 +25,7 @@ class DataInsert:
             title = record.get('title')
             context = record.get('context')
             doi = record.get('doi')
-            reference = record.get('reference')
+            reference_list = record.get('reference', [])
             fullpaper = record.get('fullpaper', False)
             keywords = record.get('keywords', [])
             authors = record.get('authors', [])
@@ -39,14 +38,13 @@ class DataInsert:
             ===============================
             """
             research_dao = ResearchDAO()
-            rid = research_dao.createResearch(title, context, doi, reference, fullpaper)
+            rid = research_dao.createResearch(title, context, doi, fullpaper)
 
             """
             ===============================
                         Authors
             ===============================
             """
-            # Insert authors
             for author in authors:
                 # "Firstname Lastname"
                 fname, lname = author.split(' ', 1)
@@ -61,7 +59,6 @@ class DataInsert:
                         Keywords
             ===============================
             """
-            # Insert keywords
             for keyword in keywords:
                 keyword_dao = KeywordDAO()
                 kid = keyword_dao.createKeyword((keyword,))
@@ -78,6 +75,25 @@ class DataInsert:
                 topic_dao.createTopic((topic,))
 
                 cur.execute("""INSERT INTO has (tid, rid) VALUES ((SELECT tid FROM topic WHERE topic = %s), %s);""", (topic, rid))
+
+            """
+            ===============================
+                        References
+            ===============================
+            """
+            reference_ids = []
+            for reference in reference_list:
+                cur.execute("""INSERT INTO reference (reference) VALUES (%s) RETURNING ref_id""", (reference,))
+                ref_id = cur.fetchone()[0]
+                reference_ids.append(ref_id)
+
+            """
+            ===============================
+                        Research-Reference Relationship
+            ===============================
+            """
+            for ref_id in reference_ids:
+                cur.execute("""INSERT INTO research_reference (rid, ref_id) VALUES (%s, %s)""", (rid, ref_id))
 
             """
             ===============================

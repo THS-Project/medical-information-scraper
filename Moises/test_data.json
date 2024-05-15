@@ -12,19 +12,5 @@
       {"cid": 1, "chunk": "chunk1"},
       {"cid": 2, "chunk": "chunk2"}
     ]
-  },
-  {
-    "title": "Research 2",
-    "context": "Context of Research 2",
-    "doi": "doi_2",
-    "reference": ["reference_3", "reference_4"],
-    "fullpaper": true,
-    "keywords": ["keyword3", "keyword4"],
-    "authors": ["Lucy Chen", "Jane Smith"],
-    "topics": ["topic2", "topic3"],
-    "chunks": [
-      {"cid": 3, "chunk": "chunk3"},
-      {"cid": 4, "chunk": "chunk4"}
-    ]
   }
 ]
