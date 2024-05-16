@@ -26,3 +26,8 @@ urllib3==2.2.1
 werkzeug==3.0.2
 wsproto==1.2.0
 zipp==3.18.1
+
+chromadb~=0.4.24
+uuid~=1.30
+langchain~=0.1.15
+bs4~=0.0.2
