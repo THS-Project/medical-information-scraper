@@ -44,7 +44,8 @@ class DataInsert:
             reference_list = record.get('reference', [])
             fullpaper = record.get('fullpaper', False)
             keywords = record.get('keywords', [])
-            topics = record.get('topics', [])
+            topic = record.get('term')
+            chunk_ids = record.get('chunk_id', [])
             chunks = record.get('chunks', [])
 
             """
@@ -85,11 +86,10 @@ class DataInsert:
                         Topics
             ===============================
             """
-            for topic in topics:
-                topic_dao = TopicDAO()
-                topic_dao.createTopic((topic,))
+            topic_dao = TopicDAO()
+            topic_dao.createTopic((topic,))
 
-                cur.execute("""INSERT INTO has (tid, rid) VALUES ((SELECT tid FROM topic WHERE topic = %s), %s);""", (topic, rid))
+            cur.execute("""INSERT INTO has (tid, rid) VALUES ((SELECT tid FROM topic WHERE topic = %s), %s);""", (topic, rid))
 
             """
             ===============================
@@ -115,11 +115,10 @@ class DataInsert:
                         Chunks
             ===============================
             """
-            for chunk in chunks:
-                cid = chunk.get('cid')
-                chunk_text = chunk.get('chunk')
+            for i, chunk in enumerate(chunks):
+                cid = chunk_ids[i]  # Get corresponding chunk_id
+                cur.execute("""INSERT INTO chunks (cid, rid, chunk) VALUES (%s, %s, %s)""", (cid, rid, chunk))
 
-                cur.execute("""INSERT INTO chunks (cid, rid, chunk) VALUES (%s, %s, %s)""", (cid, rid, chunk_text))
 
         self.db.connection.commit()
         cur.close()

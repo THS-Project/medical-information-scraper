@@ -1,16 +1,14 @@
 [
   {
-    "title": "Research 3",
-    "context": "Context of Research 3",
-    "doi": "doi_2",
+    "title": "Research 4",
+    "context": "Context of Research 4",
+    "doi": "doi_14",
     "reference": ["reference_5", "reference_6"],
     "fullpaper": true,
     "keywords": ["keyword6", "keyword7"],
     "authors": ["Angela Lopez", "Scooby Doo"],
-    "topics": ["topic5", "topic6"],
-    "chunks": [
-      {"cid": 3, "chunk": "chunk3"},
-      {"cid": 4, "chunk": "chunk5"}
-    ]
+    "term": "covid",
+    "chunk_id": ["abcj87183", "kajch827"],
+    "chunks": ["chunk1", "chunk2"]
   }
 ]
