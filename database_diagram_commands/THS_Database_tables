@@ -19,8 +19,18 @@ CREATE TABLE IF NOT EXISTS research(
     title varchar(100),
     context varchar,
     doi varchar(100),
-    reference varchar(250),
     fullpaper boolean DEFAULT FALSE
+);
+
+CREATE TABLE IF NOT EXISTS reference(
+    ref_id SERIAL PRIMARY KEY UNIQUE,
+    reference varchar(250)
+);
+
+CREATE TABLE IF NOT EXISTS research_reference(
+    rid integer NOT NULL REFERENCES research(rid),
+    ref_id integer NOT NULL REFERENCES reference(ref_id),
+    PRIMARY KEY (rid, ref_id)
 );
 
 CREATE TABLE IF NOT EXISTS partOf(
@@ -42,7 +52,7 @@ CREATE TABLE IF NOT EXISTS has(
 );
 
 CREATE TABLE IF NOT EXISTS chunks(
-    cid serial PRIMARY KEY UNIQUE,
+    cid SERIAL PRIMARY KEY UNIQUE,
     rid integer NOT NULL REFERENCES research(rid),
     chunk varchar
 );
