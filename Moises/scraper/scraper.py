@@ -2,6 +2,7 @@ import csv
 import time
 import re
 import json
+import os
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -269,7 +270,10 @@ def soup_pubmed_scrapper(term):
             "term": term
         }
 
-        with open(f'paper_{term}_{paper_number}.json', 'w', encoding='utf-8') as f:
+        directory = '/Moises/scraped_json/'
+        file_path = os.path.join(directory, f'paper_{term}_{paper_number}.json')
+
+        with open(file_path, 'w', encoding='utf-8') as f:
             json.dump(paper, f, ensure_ascii=False)
 
         paper_number += 1
