@@ -258,11 +258,14 @@ def soup_pubmed_scrapper(term):
         list_temp = [title, i['link'], abstract, content, text, authors_text]
         temp.append(list_temp)
 
+        doi_string = ""
+        if doi_number[0]:
+            doi_string = doi_number[0]
 
         paper = {
             "title": title,
             "context": clean_context_text,
-            "doi": doi_number,
+            "doi": doi_string,
             "references": clean_references,
             "isFullpaper": len(isFullpaper) > 1 and len(isFullpaper2_verification) == 0 and len(clean_references) > 0,
             "keywords": keywords_list,

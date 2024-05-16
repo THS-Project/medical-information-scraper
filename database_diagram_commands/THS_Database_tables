@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS topic(
 
 CREATE TABLE IF NOT EXISTS keyword(
     kid SERIAL PRIMARY KEY UNIQUE,
-    keyword varchar(30)
+    keyword varchar(50)
 );
 
 CREATE TABLE IF NOT EXISTS author(
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS research(
 
 CREATE TABLE IF NOT EXISTS reference(
     ref_id SERIAL PRIMARY KEY UNIQUE,
-    reference varchar(250)
+    reference varchar(500)
 );
 
 CREATE TABLE IF NOT EXISTS research_reference(

@@ -1,4 +1,5 @@
 import json
+import os
 from Moises.model.db import Database
 from Moises.model.author import AuthorDAO
 from Moises.model.keyword import KeywordDAO
@@ -9,6 +10,21 @@ class DataInsert:
 
     def __init__(self):
         self.db = Database()
+
+    # Loops through a directory and calls insert_data for each JSON file.
+    def insert_data_from_directory(self):
+        base_path = os.path.dirname(os.path.abspath(__file__))  # Get script directory
+        json_dir = os.path.join(base_path, "..", "scraped_json")
+
+        if not os.path.isdir(json_dir):
+            raise ValueError(f"{json_dir} is not a valid directory.")
+
+        for filename in os.listdir(json_dir):
+            filepath = os.path.join(json_dir, filename)
+            if filepath.lower().endswith('.json'):
+                self.insert_data(filepath)
+
+        print(f"Finished processing files.")
 
     def insert_data(self, filepath):
         cur = self.db.connection.cursor()
@@ -21,110 +37,77 @@ class DataInsert:
         with open(filepath, 'r') as f:
             data = json.load(f)
 
-        for record in data:
-            # edge cases
-            doi = record.get('doi')
-            title = record.get('title')
-            authors = record.get('authors', [])
+        # Extract data from JSON
+        doi = data.get('doi')
+        if isinstance(doi, list):
+            doi = doi[0]
+        title = data.get('title')
+        authors = data.get('authors', [])
 
-            # if doi, title, and authors are empty, reject json
-            if not doi or not title or not authors:
-                print(f"Missing required field (DOI, Title, or Authors) in JSON. JSON rejected.")
-                return
+        # If essential fields are missing, reject JSON
+        if not doi or not title or not authors:
+            print(f"Missing required field (DOI, Title, or Authors) in JSON. JSON rejected.")
+            return
 
-            # check if doi already exists in the database, if it does, reject json
-            cur.execute("""SELECT rid from research WHERE doi = %s""", (doi,))
-            existing_doi = cur.fetchone()
+        # Check if DOI already exists in the database
+        cur.execute("""SELECT rid FROM research WHERE doi = %s""", (doi,))
+        existing_doi = cur.fetchone()
 
-            if existing_doi:
-                print(f"DOI '{doi}' already exists in the database. JSON rejected.")
-                return
+        if existing_doi:
+            print(f"DOI '{doi}' already exists in the database. JSON rejected.")
+            return
 
-            context = record.get('context')
-            reference_list = record.get('reference', [])
-            fullpaper = record.get('fullpaper', False)
-            keywords = record.get('keywords', [])
-            topic = record.get('term')
-            chunk_ids = record.get('chunk_id', [])
-            chunks = record.get('chunks', [])
+        # Extract additional fields
+        context = data.get('context')
+        reference_list = data.get('references', [])
+        fullpaper = data.get('isFullpaper', False)
+        keywords = data.get('keywords', [])
+        topic = data.get('term')
+        chunk_ids = data.get('chunk_id', [])
+        chunks = data.get('chunks', [])
 
-            """
-            ===============================
-                        Research
-            ===============================
-            """
-            research_dao = ResearchDAO()
-            rid = research_dao.createResearch(title, context, doi, fullpaper)
+        # Create research entry
+        research_dao = ResearchDAO()
+        rid = research_dao.createResearch(title, context, doi, fullpaper)
 
-            """
-            ===============================
-                        Authors
-            ===============================
-            """
-            for author in authors:
-                # "Firstname Lastname"
-                fname, lname = author.split(' ', 1)
+        # Insert authors
+        for author in authors:
+            fname, lname = author.split(' ', 1)
+            author_dao = AuthorDAO()
+            aid = author_dao.createAuthor(fname, lname)
+            cur.execute("""INSERT INTO partOf (aid, rid) VALUES (%s, %s)""", (aid, rid))
 
-                author_dao = AuthorDAO()
-                aid = author_dao.createAuthor(fname, lname)
+        # Insert keywords
+        for keyword in keywords:
+            keyword_dao = KeywordDAO()
+            kid = keyword_dao.createKeyword((keyword,))
+            cur.execute("""INSERT INTO contains (kid, rid) VALUES (%s, %s)""", (kid, rid))
 
-                cur.execute("""INSERT INTO partOf (aid, rid) VALUES (%s, %s)""", (aid, rid))
+        # Insert topic
+        topic_dao = TopicDAO()
+        topic_dao.createTopic((topic,))
+        cur.execute("""INSERT INTO has (tid, rid) VALUES ((SELECT tid FROM topic WHERE topic = %s), %s);""", (topic, rid))
 
-            """
-            ===============================
-                        Keywords
-            ===============================
-            """
-            for keyword in keywords:
-                keyword_dao = KeywordDAO()
-                kid = keyword_dao.createKeyword((keyword,))
+        # Insert references
+        reference_ids = []
+        for reference in reference_list:
+            cur.execute("""INSERT INTO reference (reference) VALUES (%s) RETURNING ref_id""", (reference,))
+            ref_id = cur.fetchone()[0]
+            reference_ids.append(ref_id)
 
-                cur.execute("""INSERT INTO contains (kid, rid) VALUES (%s, %s)""", (kid, rid))
+        # Establish research-reference relationship
+        for ref_id in reference_ids:
+            cur.execute("""INSERT INTO research_reference (rid, ref_id) VALUES (%s, %s)""", (rid, ref_id))
 
-            """
-            ===============================
-                        Topics
-            ===============================
-            """
-            topic_dao = TopicDAO()
-            topic_dao.createTopic((topic,))
-
-            cur.execute("""INSERT INTO has (tid, rid) VALUES ((SELECT tid FROM topic WHERE topic = %s), %s);""", (topic, rid))
-
-            """
-            ===============================
-                        References
-            ===============================
-            """
-            reference_ids = []
-            for reference in reference_list:
-                cur.execute("""INSERT INTO reference (reference) VALUES (%s) RETURNING ref_id""", (reference,))
-                ref_id = cur.fetchone()[0]
-                reference_ids.append(ref_id)
-
-            """
-            ===============================
-                        Research-Reference Relationship
-            ===============================
-            """
-            for ref_id in reference_ids:
-                cur.execute("""INSERT INTO research_reference (rid, ref_id) VALUES (%s, %s)""", (rid, ref_id))
-
-            """
-            ===============================
-                        Chunks
-            ===============================
-            """
-            for i, chunk in enumerate(chunks):
-                cid = chunk_ids[i]  # Get corresponding chunk_id
-                cur.execute("""INSERT INTO chunks (cid, rid, chunk) VALUES (%s, %s, %s)""", (cid, rid, chunk))
-
+        # Insert chunks
+        for i, chunk in enumerate(chunks):
+            cid = chunk_ids[i]  # Get corresponding chunk_id
+            cur.execute("""INSERT INTO chunks (cid, rid, chunk) VALUES (%s, %s, %s)""", (cid, rid, chunk))
 
         self.db.connection.commit()
         cur.close()
 
-        print(f"Data from {filepath} successfully added into database")
 
 # Usage example
 data_insert = DataInsert()
-data_insert.insert_data("test_data.json")
+data_insert.insert_data_from_directory()
