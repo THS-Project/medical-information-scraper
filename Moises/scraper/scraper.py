@@ -118,7 +118,7 @@ def soup_pubmed_scrapper(term):
 
     paper_number = 0
     #testing in only one link
-    #links = [{'title': 'Erythema Migrans-like COVID Vaccine Arm: A Literature Review', 'link': 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8836892/'}]
+    #links = [{'title': 'Erythema Migrans-like COVID Vaccine Arm: A Literature Review', 'link': 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8836892/'}, {'title': 'Severe Acute Respiratory Syndrome Coronavirus 2: The Role of the Main Components of the Innate Immune System', 'link': 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8442517/'}]
     for i in links:
         if 'pdf' in i['link'] or 'classic' in i['link']:
             continue
@@ -300,8 +300,9 @@ if __name__ == "__main__":
     print('=' * 40)
     print(' ' * 11, "Starting scraper")
     print('=' * 40)
-    for i in term:
-        soup_pubmed_scrapper(i)
+    # for i in term:
+    #     soup_pubmed_scrapper(i)
+    soup_pubmed_scrapper("covid vaccine")
     print('=' * 40)
     print(' ' * 10, "Finished Execution")
     print('=' * 40)
