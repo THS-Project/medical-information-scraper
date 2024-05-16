@@ -55,9 +55,9 @@ class ResearchDAO:
             cur = self.db.connection.cursor()
 
             # check if research already exists
-            query_check = """SELECT rid from research where title = %s AND context = %s
-             AND doi = %s AND fullpaper = %s"""
-            cur.execute(query_check, (title, context, doi, fullpaper))
+            # query_check = """SELECT rid from research where title = %s AND context = %s
+            #  AND doi = %s AND fullpaper = %s"""
+            # cur.execute(query_check, (title, context, doi, fullpaper))
 
             # if another research has the same doi
             query_check = """SELECT rid FROM research WHERE doi = %s"""
@@ -68,7 +68,7 @@ class ResearchDAO:
 
             # if research already exists
             if existing_research:
-                print(f"Research already exists with aid: {existing_research[0]}")
+                print(f"Research already exists with rid: {existing_research[0]}")
                 return existing_research[0]
 
             # if research does not exist

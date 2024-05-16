@@ -22,13 +22,28 @@ class DataInsert:
             data = json.load(f)
 
         for record in data:
-            title = record.get('title')
-            context = record.get('context')
+            # edge cases
             doi = record.get('doi')
+            title = record.get('title')
+            authors = record.get('authors', [])
+
+            # if doi, title, and authors are empty, reject json
+            if not doi or not title or not authors:
+                print(f"Missing required field (DOI, Title, or Authors) in JSON. JSON rejected.")
+                return
+
+            # check if doi already exists in the database, if it does, reject json
+            cur.execute("""SELECT rid from research WHERE doi = %s""", (doi,))
+            existing_doi = cur.fetchone()
+
+            if existing_doi:
+                print(f"DOI '{doi}' already exists in the database. JSON rejected.")
+                return
+
+            context = record.get('context')
             reference_list = record.get('reference', [])
             fullpaper = record.get('fullpaper', False)
             keywords = record.get('keywords', [])
-            authors = record.get('authors', [])
             topics = record.get('topics', [])
             chunks = record.get('chunks', [])
 
