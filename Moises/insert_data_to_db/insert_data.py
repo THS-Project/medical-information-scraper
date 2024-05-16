@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 from Moises.model.db import Database
 from Moises.model.author import AuthorDAO
 from Moises.model.keyword import KeywordDAO
@@ -10,6 +11,8 @@ class DataInsert:
 
     def __init__(self):
         self.db = Database()
+        self.backup_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "processed_json")  # Define backup directory
+
 
     # Loops through a directory and calls insert_data for each JSON file.
     def insert_data_from_directory(self):
@@ -23,6 +26,9 @@ class DataInsert:
             filepath = os.path.join(json_dir, filename)
             if filepath.lower().endswith('.json'):
                 self.insert_data(filepath)
+
+                # Move file to processed_json directory after processing
+                shutil.move(filepath, os.path.join(self.backup_dir, filename))
 
         print(f"Finished processing files.")
 
