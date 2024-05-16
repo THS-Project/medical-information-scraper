@@ -16,42 +16,34 @@ text_splitter = RecursiveCharacterTextSplitter(
 #embeddings = SentenceTransformerEmbeddingFunction()
 embeddings = HuggingFaceEmbeddings(model_name="BAAI/bge-large-en-v1.5")
 
-# Initialize Chroma DB client
-client = chromadb.PersistentClient(path="./db4")
-collection = client.create_collection(name="collection3")
+# Initialize chroma db client
+client = chromadb.PersistentClient(path="./db1")
+collection = client.create_collection(name="collection1")
 print("db created")
 
 # process each JSON in the /scraped_json directory
-directory = 'Moises/scraped_json'
+directory = '../scraped_json'
 for filename in os.listdir(directory):
     if filename.endswith('.json'):
         with open(os.path.join(directory, filename), 'r') as json_file:
             data = json.load(json_file)
-            context_value = data.get('context')
+            context_value = data.get('context')[0]
 
             # split text into chunks
             chunks = text_splitter.split_text(context_value)
 
-            # Convert chunks to vector representations and store in Chroma DB
+            # Convert chunks to vector representations and store in chroma db
             documents_list = []
             embeddings_list = []
             ids = []
-            chunks_ordered = []
 
             for i, chunk in enumerate(chunks):
                 vector = embeddings.embed_query(chunk)
 
                 documents_list.append(chunk)
                 embeddings_list.append(vector)
-                curid = uuid.uuid4()
+                curid = str(uuid.uuid4())
                 ids.append(curid)
-                chunks_ordered.append(chunk)
-                print(chunk + '\n')
-                print(i)
-                print('-----------------------------------XXX_SECOND_ARRAY__----------------------')
-                print(chunks_ordered[i] + '\n')
-                print(ids[i])
-
 
 
             collection.add(
@@ -61,7 +53,7 @@ for filename in os.listdir(directory):
             )
 
             data['chunk_id'] = ids
-            data['chunks'] = chunks_ordered
+            data['chunks'] = chunks
 
             with open(os.path.join(directory, filename), 'w') as json_file:
                 json.dump(data, json_file)
