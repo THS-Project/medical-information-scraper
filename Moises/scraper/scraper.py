@@ -6,37 +6,13 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-import requests
 from bs4 import BeautifulSoup
 
 nih = 'https://www.ncbi.nlm.nih.gov'
 term = ['covid vaccine', 'covid treatment', 'covid symptoms', 'covid sickness']
 
 
-def process_links(links):
-    output = []
-
-    # Access every link and extract content
-    for element in links:
-        title = element['title']
-        page = requests.get(element['link'], headers={'User-Agent': 'Mozilla/5.0'})
-        time.sleep(0.25)
-        soup = BeautifulSoup(page.content, 'html.parser')
-
-        xml = soup.contents
-        try:
-            list_temp = [title, element['link'], xml]
-            output.append(list_temp)
-            log(f'The link: {element["link"]} was processed')
-
-        except:
-            log(f'The link: {element["link"]} failed!')
-            continue
-
-    return output
-
-
-def soup_pubmed_scrapper(term):
+def pubmed_paper_scraper(term):
     url = f"https://ncbi.nlm.nih.gov/pmc/?term={term}"
     log_count = 0
     links = []
@@ -44,7 +20,7 @@ def soup_pubmed_scrapper(term):
 
         driver.get(url)
 
-        # 100 page view
+        # 100-page view
         WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//*[@id="ps100"]')))
         driver.find_element(By.XPATH,
                                 '//*[@id="EntrezSystem2.PEntrez.PMC.Pmc_ResultsPanel.Pmc_DisplayBar.Display"]').click()
@@ -58,7 +34,7 @@ def soup_pubmed_scrapper(term):
         for i in range(30):
             try:
                 count = 0
-                # Wait for page to load
+                # Wait for page to reload
                 WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//*[@id="maincontent"]')))
                 WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH,
                                                                                 '//*[@class="active page_link next"]')))
@@ -68,6 +44,7 @@ def soup_pubmed_scrapper(term):
                 result = soup.findAll('a', href=True)
 
                 for element in result:
+
                     # Prevent unverified papers from being added
                     if count == 100:
                         break
@@ -76,7 +53,7 @@ def soup_pubmed_scrapper(term):
                             and not element['href'].__contains__('pdf') and not element['href'].__contains__('classic') \
                             and element.text != '\n\n' and not element['href'].__contains__("?report=abstract"):
 
-                        l_paper = {'title': element.text, 'link': nih + element['href']}
+                        l_paper = {'id': log_count, 'title': element.text, 'link': nih + element['href']}
                         links.append(l_paper)
                         count += 1
                         log_count += 1
@@ -95,8 +72,6 @@ def soup_pubmed_scrapper(term):
         # Print progress
         log("Data scraped successfully")
 
-    # data = process_links(links)
-
     create_csv(term, links, log_count)
 
 
@@ -104,10 +79,10 @@ def create_csv(term, data, records):
     csv_file = f'research_{term}_{records}_records'
     with open(f'data/{csv_file}.csv', 'w', newline='', encoding="utf-8") as file:
         writer = csv.writer(file)
-        header = ['Title', 'Link']
+        header = ['Id', 'Title', 'Link']
         writer.writerow(header)
         for element in data:
-            temp = [element['title'], element['link']]
+            temp = [element['id'], element['title'], element['link']]
             writer.writerow(temp)
         log(f'Successfully created file: {csv_file}')
 
@@ -121,6 +96,6 @@ if __name__ == "__main__":
     start_time = time.time()
     log("Starting Scraper")
     for i in term:
-        soup_pubmed_scrapper(i)
+        pubmed_paper_scraper(i)
 
     log("Finished Execution!")
