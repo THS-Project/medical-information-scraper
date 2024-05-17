@@ -1,20 +1,19 @@
+import os
 import csv
 import time
-import re
 import json
-import os
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-import requests
 import re
+import requests
 from bs4 import BeautifulSoup
 
 nih = 'https://www.ncbi.nlm.nih.gov'
-term = ['covid vaccine', 'covid treatment', 'covid symptoms', 'covid sickness']
+terms = ['covid vaccine', 'covid treatment', 'covid symptoms', 'covid sickness']
 
 
 def pubmed_paper_scraper(term):
@@ -79,30 +78,35 @@ def pubmed_paper_scraper(term):
 
     create_csv(term, links, log_count)
 
+    return log_count
 
-def soup_pubmed_scrapper(term):
-    url = f"https://ncbi.nlm.nih.gov/pmc/?term={term}"
-    page = requests.get(url)
 
-    soup = BeautifulSoup(page.content, 'html.parser')
-
-    # Get all links that are on the site that are not copies or pdfs
-    result = soup.findAll('a',  href=True)
-    links = []
-    for element in result:
-        if '/articles' in element['href'] and 'pdf' not in element['href'] and 'classic' not in element['href']:
-            l_paper = {'title': element.text, 'link': nih + element['href']}
-            links.append(l_paper)
-    #print(links)
+def soup_pubmed_scrapper(term, links):
+    # Code not needed anymore
+    # url = f"https://ncbi.nlm.nih.gov/pmc/?term={term}"
+    # page = requests.get(url)
+    #
+    # soup = BeautifulSoup(page.content, 'html.parser')
+    #
+    # # Get all links that are on the site that are not copies or pdfs
+    # result = soup.findAll('a',  href=True)
+    # links = []
+    # for element in result:
+    #     if '/articles' in element['href'] and 'pdf' not in element['href'] and 'classic' not in element['href']:
+    #         l_paper = {'title': element.text, 'link': nih + element['href']}
+    #         links.append(l_paper)
+    # #print(links)
+    #
+    # print('='*30)
+    # print("Get data from site")
+    # print('=' * 30)
+    #
+    # # testing in only one link
+    # links = [{'title': 'Erythema Migrans-like COVID Vaccine Arm: A Literature Review', 'link': 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8836892/'}]
 
     temp = []
-    print('='*30)
-    print("Get data from site")
-    print('=' * 30)
-
     paper_number = 0
-    #testing in only one link
-    links = [{'title': 'Erythema Migrans-like COVID Vaccine Arm: A Literature Review', 'link': 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8836892/'}]
+
     for i in links:
         if 'pdf' in i['link'] or 'classic' in i['link']:
             continue
@@ -259,9 +263,13 @@ def soup_pubmed_scrapper(term):
         with open(file_path, 'w', encoding='utf-8') as f:
             json.dump(paper, f, ensure_ascii=False)
 
+        if paper_number % 50 == 0:
+            log(f'Paper #{paper_number} with term {term} was jsonify successfully')
+
         paper_number += 1
 
-#creo que no se está usando
+
+# CSV for links' backup
 def create_csv(term, data, records):
     csv_file = f'research_{term}_{records}_records'
     with open(f'data/{csv_file}.csv', 'w', newline='', encoding="utf-8") as file:
@@ -274,6 +282,24 @@ def create_csv(term, data, records):
         log(f'Successfully created file: {csv_file}')
 
 
+# Extract title and link
+def read_csv(term, records):
+    output = []
+    csv_file = f'research_{term}_{records}_records'
+    with open(f'data/{csv_file}.csv', 'r', newline='', encoding="utf-8") as file:
+        reader = csv.reader(file)
+        next(file)
+        for element in reader:
+            # temp = {'id': element[0], 'title': element[1], 'link': element[2]}
+            temp = {'title': element[0], 'link': element[1]}
+            output.append(temp)
+        log(f'Successfully read file: {csv_file}')
+        file.close()
+
+    return output
+
+
+# Print time and message
 def log(text):
     print(f'{round(time.time() - start_time, 2)}s: {text}')
     print('=' * 100, '\n')
@@ -282,7 +308,17 @@ def log(text):
 if __name__ == "__main__":
     start_time = time.time()
     log("Starting Scraper")
-    for i in term:
-        pubmed_paper_scraper(i)
-    soup_pubmed_scrapper('covid sickness')
+    term_list = []
+    # for i in term:
+    #     count = pubmed_paper_scraper(i)
+    #     count_list = [i, count]
+    #     term_list.append(count_list)
+
+    # Testing one file
+    term_list.append(['covid sickness', 1500])
+
+    for element in term_list:
+        links = read_csv(element[0], element[1])
+        soup_pubmed_scrapper(element[0], links)
+
     log("Finished Execution!")
