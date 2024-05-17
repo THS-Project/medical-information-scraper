@@ -7,7 +7,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 import requests
-import re
 from bs4 import BeautifulSoup
 
 nih = 'https://www.ncbi.nlm.nih.gov'
@@ -28,10 +27,10 @@ def process_links(links):
         try:
             list_temp = [title, element['link'], xml]
             output.append(list_temp)
-            print(f'The link: {element["link"]} was processed')
+            log(f'The link: {element["link"]} was processed')
 
         except:
-            print(f'The link: {element["link"]} failed!')
+            log(f'The link: {element["link"]} failed!')
             continue
 
     return output
@@ -39,67 +38,89 @@ def process_links(links):
 
 def soup_pubmed_scrapper(term):
     url = f"https://ncbi.nlm.nih.gov/pmc/?term={term}"
-
+    log_count = 0
     links = []
     with webdriver.Chrome() as driver:
+
         driver.get(url)
 
+        # 100 page view
+        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//*[@id="ps100"]')))
+        driver.find_element(By.XPATH,
+                                '//*[@id="EntrezSystem2.PEntrez.PMC.Pmc_ResultsPanel.Pmc_DisplayBar.Display"]').click()
+        time.sleep(5)
+        button = driver.find_element(By.XPATH, '//*[@id="ps100"]')
+        button.click()
+
+        time.sleep(5)
+
         # Iterate to n amount of pages
-        for i in range(2):
-            count = 0
-            WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//*[@id="maincontent"]')))
-            soup = BeautifulSoup(driver.page_source, 'html.parser')
+        for i in range(30):
+            try:
+                count = 0
+                # Wait for page to load
+                WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//*[@id="maincontent"]')))
+                WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH,
+                                                                                '//*[@class="active page_link next"]')))
+                soup = BeautifulSoup(driver.page_source, 'html.parser')
 
-            # Get all links that are on the site that are not copies or pdfs
-            result = soup.findAll('a', href=True)
-            for element in result:
-                # Prevent unverified papers from being added
-                if count == 20:
-                    break
+                # Get all links that are on the site that are not copies or pdfs
+                result = soup.findAll('a', href=True)
 
-                if element['href'].__contains__('/articles') \
-                        and not element['href'].__contains__('pdf') and not element['href'].__contains__('classic') \
-                        and element.text != '\n\n':
-                    l_paper = {'title': element.text, 'link': nih + element['href']}
-                    links.append(l_paper)
-                    count += 1
+                for element in result:
+                    # Prevent unverified papers from being added
+                    if count == 100:
+                        break
 
-            driver.find_element(By.XPATH, '//*[@class="active page_link next"]').click()
-            time.sleep(1)
+                    if element['href'].__contains__('/articles') \
+                            and not element['href'].__contains__('pdf') and not element['href'].__contains__('classic') \
+                            and element.text != '\n\n' and not element['href'].__contains__("?report=abstract"):
 
-    # Print progress
-    log(2)
+                        l_paper = {'title': element.text, 'link': nih + element['href']}
+                        links.append(l_paper)
+                        count += 1
+                        log_count += 1
 
-    data = process_links(links)
+                        if log_count % 50 == 0:
+                            log(f'Paper #{log_count} data: {l_paper}')
 
-    create_csv(term, data)
+                time.sleep(1)
+                driver.find_element(By.XPATH, '//*[@class="active page_link next"]').click()
+                time.sleep(1)
+
+            except:
+                log(f'Failed on paper #{log_count}')
+                break
+
+        # Print progress
+        log("Data scraped successfully")
+
+    # data = process_links(links)
+
+    create_csv(term, links, log_count)
 
 
-def create_csv(term, data):
-    csv_file = f'research_{term}'
-    with open(f'data/new_{csv_file}.csv', 'w', newline='', encoding="utf-8") as file:
+def create_csv(term, data, records):
+    csv_file = f'research_{term}_{records}_records'
+    with open(f'data/{csv_file}.csv', 'w', newline='', encoding="utf-8") as file:
         writer = csv.writer(file)
-        header = ['Title', 'Link', 'XML']
+        header = ['Title', 'Link']
         writer.writerow(header)
-        for i in data:
-            writer.writerow(i)
-        print(f'Successfully created file')
+        for element in data:
+            temp = [element['title'], element['link']]
+            writer.writerow(temp)
+        log(f'Successfully created file: {csv_file}')
 
 
-def log(num):
-    print('=' * 40)
-    if num == 1:
-        print(' ' * 11, "Starting scraper")
-    elif num == 2:
-        print(' ' * 5, "Data scrapped successfully")
-    elif num == 3:
-        print(' ' * 10, "Finished Execution")
-    print('=' * 40, '\n\n')
+def log(text):
+    print(f'{round(time.time() - start_time, 2)}s: {text}')
+    print('=' * 100, '\n')
 
 
 if __name__ == "__main__":
-    log(1)
+    start_time = time.time()
+    log("Starting Scraper")
     for i in term:
         soup_pubmed_scrapper(i)
-        break
-    log(3)
+
+    log("Finished Execution!")
