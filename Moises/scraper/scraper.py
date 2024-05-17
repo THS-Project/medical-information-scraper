@@ -309,6 +309,7 @@ if __name__ == "__main__":
     start_time = time.time()
     log("Starting Scraper")
     term_list = []
+    # Search for links (selenium scraper)
     # for i in term:
     #     count = pubmed_paper_scraper(i)
     #     count_list = [i, count]
