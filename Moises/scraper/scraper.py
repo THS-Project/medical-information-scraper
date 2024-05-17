@@ -17,85 +17,68 @@ nih = 'https://www.ncbi.nlm.nih.gov'
 term = ['covid vaccine', 'covid treatment', 'covid symptoms', 'covid sickness']
 
 
-#Creo que no se está usando
-def pubmed_scrapper(url):
-    options = webdriver.ChromeOptions()
-    options.add_argument('--start-maximized')
-    with webdriver.Chrome(options= options) as driver:
+def pubmed_paper_scraper(term):
+    url = f"https://ncbi.nlm.nih.gov/pmc/?term={term}"
+    log_count = 0
+    links = []
+    with webdriver.Chrome() as driver:
+
         driver.get(url)
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="abstract-a.adk.b.ad"]/div[2]')))
-        title = driver.find_element(By.XPATH, '//*[@id="ui-ncbiinpagenav-1"]/div[1]/h1').text
-        authors = driver.find_element(By.XPATH, '//*[@id="ui-ncbiinpagenav-1"]/div[1]/div[2]').text
-        doi = driver.find_element(By.XPATH, '//*[@id="ui-ncbiinpagenav-1"]/div[1]/div[1]/div[1]/div/div[2]/span[2]/a').text
-        context = driver.find_element(By.XPATH, '//*[@id="abstract-a.adk.b.ad"]/div[2]').text
-        fp = False
 
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '/html/body/main/aside/div/section[2]/ul/li[1]/button')))
+        # 100-page view
+        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//*[@id="ps100"]')))
+        driver.find_element(By.XPATH,
+                                '//*[@id="EntrezSystem2.PEntrez.PMC.Pmc_ResultsPanel.Pmc_DisplayBar.Display"]').click()
+        time.sleep(5)
+        button = driver.find_element(By.XPATH, '//*[@id="ps100"]')
+        button.click()
 
-        # Press citation button
-        driver.find_element(By.XPATH, '/html/body/main/aside/div/section[2]/ul/li[1]/button').click()
-        time.sleep(2)
+        time.sleep(5)
 
-        reference = driver.find_element(By.XPATH, '//*[@id="ui-ncbiexternallink-3"]/div[4]/div/div[2]/div[1]').text
-        result = [title, context, doi, reference, fp, authors]
+        # Iterate to n amount of pages
+        for i in range(30):
+            try:
+                count = 0
+                # Wait for page to reload
+                WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//*[@id="maincontent"]')))
+                WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH,
+                                                                                '//*[@class="active page_link next"]')))
+                soup = BeautifulSoup(driver.page_source, 'html.parser')
 
-        print(result)
-        create_csv("text", result)
+                # Get all links that are on the site that are not copies or pdfs
+                result = soup.findAll('a', href=True)
 
-# Moises scrapper
-# def soup_pubmed_scrapper(term):
-#     url = f"https://ncbi.nlm.nih.gov/pmc/?term={term}"
-#     page = requests.get(url)
-#
-#     soup = BeautifulSoup(page.content, 'html.parser')
-#
-#     # result = [title, context, doi, reference, fp, authors]
-#
-#     # Get all links that are on the site that are not copies or pdfs
-#     result = soup.findAll('a',  href=True)
-#     links = []
-#     for element in result:
-#         if element['href'].__contains__('/articles')\
-#                 and not element['href'].__contains__('pdf') and not element['href'].__contains__('/classic'):
-#             l_paper = {'title': element.text, 'link': nih + element['href']}
-#             links.append(l_paper)
-#     print(links)
-#
-#     temp = []
-#     print('='*30)
-#     print("Get data from site")
-#     print('=' * 30)
-#
-#     for i in links:
-#         if i['link'].__contains__('pdf') or i['link'].__contains__('classic'):
-#             continue
-#
-#         title = i['title']
-#         page = requests.get(i['link'], headers={'User-Agent':'Mozilla/5.0'})
-#         soup = BeautifulSoup(page.content, 'html.parser')
-#         abstract = soup.find(attrs={'id':re.compile("abstract")})
-#         if not abstract:
-#             abstract = soup.find(attrs={'id':re.compile("abs")})
-#
-#         if abstract:
-#             abstract = abstract.text
-#
-#         content = soup.contents
-#         text = soup.text.replace("\n", "")
-#
-#     # Useful for getting sections
-#         # text = soup.findAll('div', id=re.compile("sec-"))
-#         # extract = ''
-#         # for element in text:
-#         #     extract += element.text
-#         # print(text)
-#
-#         print(i['link'])
-#         list_temp = [title, i['link'], abstract, content, text]
-#         # print(list_temp)
-#         temp.append(list_temp)
+                for element in result:
 
-    # create_csv(term, temp)
+                    # Prevent unverified papers from being added
+                    if count == 100:
+                        break
+
+                    if element['href'].__contains__('/articles') \
+                            and not element['href'].__contains__('pdf') and not element['href'].__contains__('classic') \
+                            and element.text != '\n\n' and not element['href'].__contains__("?report=abstract"):
+
+                        l_paper = {'id': log_count, 'title': element.text, 'link': nih + element['href']}
+                        links.append(l_paper)
+                        count += 1
+                        log_count += 1
+
+                        if log_count % 50 == 0:
+                            log(f'Paper #{log_count} data: {l_paper}')
+
+                time.sleep(1)
+                driver.find_element(By.XPATH, '//*[@class="active page_link next"]').click()
+                time.sleep(1)
+
+            except:
+                log(f'Failed on paper #{log_count}')
+                break
+
+        # Print progress
+        log("Data scraped successfully")
+
+    create_csv(term, links, log_count)
+
 
 def soup_pubmed_scrapper(term):
     url = f"https://ncbi.nlm.nih.gov/pmc/?term={term}"
@@ -279,34 +262,27 @@ def soup_pubmed_scrapper(term):
         paper_number += 1
 
 #creo que no se está usando
-def create_csv(term, data):
-    csv_file = f'research_{term}'
+def create_csv(term, data, records):
+    csv_file = f'research_{term}_{records}_records'
     with open(f'data/{csv_file}.csv', 'w', newline='', encoding="utf-8") as file:
         writer = csv.writer(file)
-        header = ['Title', 'Link', 'Abstract', 'XML', 'Text']
+        header = ['Id', 'Title', 'Link']
         writer.writerow(header)
-        for i in data:
-            writer.writerow(i)
-        print(f'Successfully created file')
+        for element in data:
+            temp = [element['id'], element['title'], element['link']]
+            writer.writerow(temp)
+        log(f'Successfully created file: {csv_file}')
 
 
-# def create_csv(data):
-#     with open('data/research_test.csv', 'w', newline='', encoding="utf-8") as file:
-#         writer = csv.writer(file)
-#         header = ['Title', 'Context', 'doi', 'reference', 'Full Paper', 'Authors']
-#         writer.writerow(header)
-#         writer.writerow(data)
+def log(text):
+    print(f'{round(time.time() - start_time, 2)}s: {text}')
+    print('=' * 100, '\n')
 
 
 if __name__ == "__main__":
-    # link = "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9305720/"
-    # link = f"https://ncbi.nlm.nih.gov/pmc/?term={term}"
-    print('=' * 40)
-    print(' ' * 11, "Starting scraper")
-    print('=' * 40)
-    #for i in term:
-    #     soup_pubmed_scrapper(i)
+    start_time = time.time()
+    log("Starting Scraper")
+    for i in term:
+        pubmed_paper_scraper(i)
     soup_pubmed_scrapper('covid sickness')
-    print('=' * 40)
-    print(' ' * 10, "Finished Execution")
-    print('=' * 40)
+    log("Finished Execution!")
