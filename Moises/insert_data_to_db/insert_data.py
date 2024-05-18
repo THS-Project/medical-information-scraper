@@ -1,6 +1,8 @@
 import json
 import os
 import shutil
+import chromadb
+import nameparser
 from Moises.model.db import Database
 from Moises.model.author import AuthorDAO
 from Moises.model.keyword import KeywordDAO
@@ -11,12 +13,12 @@ class DataInsert:
 
     def __init__(self):
         self.db = Database()
-        self.backup_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "processed_json")  # Define backup directory
+        self.backup_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "processed_json")
 
 
-    # Loops through a directory and calls insert_data for each JSON file.
+    # loops through scraped_json directory and calls insert_data for each JSON
     def insert_data_from_directory(self):
-        base_path = os.path.dirname(os.path.abspath(__file__))  # Get script directory
+        base_path = os.path.dirname(os.path.abspath(__file__))
         json_dir = os.path.join(base_path, "..", "scraped_json")
 
         if not os.path.isdir(json_dir):
@@ -27,10 +29,11 @@ class DataInsert:
             if filepath.lower().endswith('.json'):
                 self.insert_data(filepath)
 
-                # Move file to processed_json directory after processing
+                # Move file to processed_json directory after inserting in db
                 shutil.move(filepath, os.path.join(self.backup_dir, filename))
 
         print(f"Finished processing files.")
+
 
     def insert_data(self, filepath):
         cur = self.db.connection.cursor()
@@ -45,53 +48,89 @@ class DataInsert:
 
         # Extract data from JSON
         doi = data.get('doi')
+
         if isinstance(doi, list):
             doi = doi[0]
+
+        # Extract records from JSON
         title = data.get('title')
         authors = data.get('authors', [])
-
-        # If essential fields are missing, reject JSON
-        if not doi or not title or not authors:
-            print(f"Missing required field (DOI, Title, or Authors) in JSON. JSON rejected.")
-            return
-
-        # Check if DOI already exists in the database
-        cur.execute("""SELECT rid FROM research WHERE doi = %s""", (doi,))
-        existing_doi = cur.fetchone()
-
-        if existing_doi:
-            print(f"DOI '{doi}' already exists in the database. JSON rejected.")
-            return
-
-        # Extract additional fields
+        chunk_ids = data.get('chunk_id', [])
+        chunks = data.get('chunks', [])
         context = data.get('context')
         reference_list = data.get('references', [])
         fullpaper = data.get('isFullpaper', False)
         keywords = data.get('keywords', [])
         topic = data.get('term')
-        chunk_ids = data.get('chunk_id', [])
-        chunks = data.get('chunks', [])
 
-        # Create research entry
+        # Connect to chroma
+        chroma_instance = chromadb.PersistentClient(path="./chroma/db1")
+        collection = chroma_instance.get_collection("collection1")
+        #print(collection)
+
+
+    #------ Edge cases to reject JSON ------
+
+        # If doi, title and context are missing, reject JSON and delete chunks from chroma
+        if not doi or not title or not authors:
+            print(f"Missing required field (DOI, Title, or Authors) in JSON. JSON rejected.")
+            self.delete_chunks(chunk_ids, collection)
+            return
+
+        # Check if DOI already exists in the database. If it does, reject JSON and delete chunks from chroma
+        cur.execute("""SELECT rid FROM research WHERE doi = %s""", (doi,))
+        existing_doi = cur.fetchone()
+        if existing_doi:
+            print(f"DOI '{doi}' already exists in the database. JSON rejected.")
+            self.delete_chunks(chunk_ids, collection)
+            return
+
+    #-------Inserting Data to Postgres-----#
+        # Insert research
         research_dao = ResearchDAO()
         rid = research_dao.createResearch(title, context, doi, fullpaper)
 
         # Insert authors
         for author in authors:
-            fname, lname = author.split(' ', 1)
+            parsed_name = nameparser.HumanName(author.strip())
+            names = parsed_name.as_dict()
+
+            if 'middle' in names:
+                if names['middle'].endswith('.'):
+                    # Middle name with a dot, treat it as part of the first name
+                    fname = parsed_name.first + " " + parsed_name.middle
+                    lname = parsed_name.last
+                else:
+                    # Middle name without a dot, treat it as the last name
+                    fname = parsed_name.first
+                    lname = " ".join([parsed_name.middle, parsed_name.last])
+            else:
+                # No middle name
+                fname = parsed_name.first
+                lname = parsed_name.last
+
+            # Strip leading and trailing spaces before inserting
+            fname = fname.strip()
+            lname = lname.strip()
+
             author_dao = AuthorDAO()
             aid = author_dao.createAuthor(fname, lname)
+            # Insert research-author relationship
             cur.execute("""INSERT INTO partOf (aid, rid) VALUES (%s, %s)""", (aid, rid))
 
         # Insert keywords
         for keyword in keywords:
             keyword_dao = KeywordDAO()
             kid = keyword_dao.createKeyword((keyword,))
+
+            # Insert research-keyword relationship
             cur.execute("""INSERT INTO contains (kid, rid) VALUES (%s, %s)""", (kid, rid))
 
         # Insert topic
         topic_dao = TopicDAO()
         topic_dao.createTopic((topic,))
+
+        # Insert research-topic relationship
         cur.execute("""INSERT INTO has (tid, rid) VALUES ((SELECT tid FROM topic WHERE topic = %s), %s);""", (topic, rid))
 
         # Insert references
@@ -101,7 +140,7 @@ class DataInsert:
             ref_id = cur.fetchone()[0]
             reference_ids.append(ref_id)
 
-        # Establish research-reference relationship
+        # Insert research-reference relationship
         for ref_id in reference_ids:
             cur.execute("""INSERT INTO research_reference (rid, ref_id) VALUES (%s, %s)""", (rid, ref_id))
 
@@ -113,7 +152,22 @@ class DataInsert:
         self.db.connection.commit()
         cur.close()
 
+    # Deletes chunks from collection
+    def delete_chunks(self, chunk_ids, collection):
+        for chunk_id in chunk_ids:
+            chunk = collection.get(chunk_id)
 
-# Usage example
+            if chunk is not None and any(chunk.values()):
+                collection.delete(chunk_id)
+                print(f"Chunk with ID '{chunk_id}' was deleted from Chroma.")
+
+            else:
+                print(f"Chunk with ID '{chunk_id}' not found in Chroma.")
+
+        print(f"Total chunks in collection: {collection.count()}")
+
+
+
 data_insert = DataInsert()
 data_insert.insert_data_from_directory()
+

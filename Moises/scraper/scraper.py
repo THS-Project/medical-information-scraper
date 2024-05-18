@@ -119,7 +119,7 @@ def soup_pubmed_scrapper(term):
 
     paper_number = 0
     #testing in only one link
-    links = [{'title': 'Erythema Migrans-like COVID Vaccine Arm: A Literature Review', 'link': 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8836892/'}]
+    #links = [{'title': 'Erythema Migrans-like COVID Vaccine Arm: A Literature Review', 'link': 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8836892/'}]
     for i in links:
         if 'pdf' in i['link'] or 'classic' in i['link']:
             continue
