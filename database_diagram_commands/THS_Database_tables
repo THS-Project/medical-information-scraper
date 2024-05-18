@@ -1,3 +1,14 @@
+drop table chunks
+drop table contains
+drop table has
+drop table keyword
+drop table partof
+drop table research_reference
+drop table topic
+drop table reference
+drop table research
+drop table author
+
 CREATE TABLE IF NOT EXISTS topic(
     tid SERIAL PRIMARY KEY UNIQUE,
     topic varchar(100)
@@ -5,18 +16,18 @@ CREATE TABLE IF NOT EXISTS topic(
 
 CREATE TABLE IF NOT EXISTS keyword(
     kid SERIAL PRIMARY KEY UNIQUE,
-    keyword varchar(50)
+    keyword varchar(100)
 );
 
 CREATE TABLE IF NOT EXISTS author(
     aid SERIAL PRIMARY KEY UNIQUE,
-    fname varchar(20),
-    lname varchar(20)
+    fname varchar(250),
+    lname varchar(250)
 );
 
 CREATE TABLE IF NOT EXISTS research(
     rid SERIAL PRIMARY KEY UNIQUE,
-    title varchar(100),
+    title varchar(500),
     context varchar,
     doi varchar(100),
     fullpaper boolean DEFAULT FALSE
@@ -24,7 +35,7 @@ CREATE TABLE IF NOT EXISTS research(
 
 CREATE TABLE IF NOT EXISTS reference(
     ref_id SERIAL PRIMARY KEY UNIQUE,
-    reference varchar(500)
+    reference varchar
 );
 
 CREATE TABLE IF NOT EXISTS research_reference(
@@ -51,8 +62,13 @@ CREATE TABLE IF NOT EXISTS has(
     PRIMARY KEY (tid, rid)
 );
 
-CREATE TABLE IF NOT EXISTS chunks(
-    cid SERIAL PRIMARY KEY UNIQUE,
+CREATE TABLE IF NOT EXISTS chunks (
+    cid varchar(250) PRIMARY KEY UNIQUE,
     rid integer NOT NULL REFERENCES research(rid),
     chunk varchar
 );
+
+
+
+
+
