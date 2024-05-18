@@ -273,7 +273,7 @@ def soup_pubmed_scrapper(term):
             "term": term
         }
 
-        directory = '../scraped_json/'
+        directory = '../json_management/scraped_json/'
         file_path = os.path.join(directory, f'paper_{term}_{paper_number}.json')
 
         with open(file_path, 'w', encoding='utf-8') as f:

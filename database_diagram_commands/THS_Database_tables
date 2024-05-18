@@ -1,14 +1,3 @@
-drop table chunks
-drop table contains
-drop table has
-drop table keyword
-drop table partof
-drop table research_reference
-drop table topic
-drop table reference
-drop table research
-drop table author
-
 CREATE TABLE IF NOT EXISTS topic(
     tid SERIAL PRIMARY KEY UNIQUE,
     topic varchar(100)
