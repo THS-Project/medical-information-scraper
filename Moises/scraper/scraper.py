@@ -321,7 +321,7 @@ if __name__ == "__main__":
     #     term_list.append(count_list)
 
     # Testing one file
-    term_list.append(['covid sickness', 1500])
+    term_list.append(['covid vaccine', 20])
 
     for element in term_list:
         links = read_csv(element[0], element[1])
