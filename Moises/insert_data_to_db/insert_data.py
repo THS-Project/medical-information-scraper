@@ -3,6 +3,7 @@ import os
 import shutil
 import chromadb
 import nameparser
+from Moises.chroma import config
 from Moises.model.db import Database
 from Moises.model.author import AuthorDAO
 from Moises.model.keyword import KeywordDAO
@@ -15,14 +16,19 @@ class DataInsert:
     def __init__(self):
         self.db = Database()
         base_path = os.path.dirname(os.path.abspath(__file__))
-        self.backup_dir = os.path.join(base_path, "..", "json_management", "processed_json")
-        self.rejected_dir = os.path.join(base_path, "..", "json_management", "rejected_json")
+        self.backup_dir = os.path.join(base_path, "../json_management/processed_json")
+        self.rejected_dir = os.path.join(base_path, "../json_management/rejected_json")
 
 
     # Loops through scraped_json directory and calls insert_data for each JSON
     def insert_data_from_directory(self):
         base_path = os.path.dirname(os.path.abspath(__file__))
-        json_dir = os.path.join(base_path, "..", "json_management", "scraped_json")
+        json_dir = os.path.join(base_path, "", "../json_management", "scraped_json")
+
+        # Create directories if they do not exist
+        os.makedirs(self.backup_dir, exist_ok=True)
+        os.makedirs(self.rejected_dir, exist_ok=True)
+
 
         if not os.path.isdir(json_dir):
             raise ValueError(f"{json_dir} is not a valid directory.")
@@ -37,7 +43,7 @@ class DataInsert:
                     shutil.move(filepath, os.path.join(self.backup_dir, filename))
                 except ValueError as e:
                     print(f"Error processing file '{filename}': {e}")
-                    # Move rejected file to rejected_json
+                    # Move rejected file to rejected_json directory
                     shutil.move(filepath, os.path.join(self.rejected_dir, filename))
 
         print('=' * 30)
@@ -162,8 +168,8 @@ class DataInsert:
     # Deletes chunks from chroma
     def delete_chunks(self, chunk_ids):
         # Connect to Chroma and delete specified chunks
-        chroma_instance = chromadb.PersistentClient(path="./chroma/db1")
-        collection = chroma_instance.get_collection("collection1")
+        chroma_instance = chromadb.PersistentClient(path="../chroma/"+config.db_name)
+        collection = chroma_instance.get_collection(name=config.collection_name)
 
         for chunk_id in chunk_ids:
             chunk = collection.get(chunk_id)

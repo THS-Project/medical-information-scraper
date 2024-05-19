@@ -1,9 +1,11 @@
 # Ignore, this is just to test chroma connection and specific cases
 
 import chromadb
+from Moises.chroma import config
 
-chroma_instance = chromadb.PersistentClient(path="../chroma/db2")
-collection = chroma_instance.get_collection("collection2")
+chroma_instance = chromadb.PersistentClient(path='../chroma'+config.db_name)
+collection = chroma_instance.get_collection(name=config.collection_name)
+print(chroma_instance)
 print(collection)
 
 def delete_chunks(chunk_ids):
