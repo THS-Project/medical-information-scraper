@@ -1,9 +1,9 @@
-import textwrap
 import chromadb
+import config
 import os
 import uuid
 import json
-from langchain.text_splitter import RecursiveCharacterTextSplitter, SentenceTransformersTokenTextSplitter
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
 
@@ -17,12 +17,13 @@ text_splitter = RecursiveCharacterTextSplitter(
 embeddings = HuggingFaceEmbeddings(model_name="BAAI/bge-large-en-v1.5")
 
 # Initialize chroma db client
-client = chromadb.PersistentClient(path="./db1")
-collection = client.create_collection(name="collection1")
-print("db created")
+client = chromadb.PersistentClient(path=config.db_name)
+collection = client.get_collection(config.collection_name)
+print('db accessed')
 
-# process each JSON in the /json_management/scraped_json directory
+# process each JSON in the /scraped_json directory
 directory = '../json_management/scraped_json'
+file_counter = 0
 for filename in os.listdir(directory):
     if filename.endswith('.json'):
         with open(os.path.join(directory, filename), 'r') as json_file:
@@ -57,3 +58,6 @@ for filename in os.listdir(directory):
 
             with open(os.path.join(directory, filename), 'w') as json_file:
                 json.dump(data, json_file)
+
+    file_counter += 1
+    print(f'{file_counter} files processed')
