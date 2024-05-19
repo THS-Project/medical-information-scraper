@@ -23,7 +23,7 @@ class DataInsert:
     # Loops through scraped_json directory and calls insert_data for each JSON
     def insert_data_from_directory(self):
         base_path = os.path.dirname(os.path.abspath(__file__))
-        json_dir = os.path.join(base_path, "", "../json_management", "scraped_json")
+        json_dir = os.path.join(base_path, "../json_management/scraped_json")
 
         # Create directories if they do not exist
         os.makedirs(self.backup_dir, exist_ok=True)
