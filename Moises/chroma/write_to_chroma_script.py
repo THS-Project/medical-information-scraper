@@ -21,8 +21,8 @@ client = chromadb.PersistentClient(path="./db1")
 collection = client.create_collection(name="collection1")
 print("db created")
 
-# process each JSON in the /scraped_json directory
-directory = '../scraped_json'
+# process each JSON in the /json_management/scraped_json directory
+directory = '../json_management/scraped_json'
 for filename in os.listdir(directory):
     if filename.endswith('.json'):
         with open(os.path.join(directory, filename), 'r') as json_file:
