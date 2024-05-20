@@ -1,6 +1,6 @@
 import dbconfig
 import chromadb
-from Moises.main import log
+from Moises.create_log import log
 
 def create_db():
     client = chromadb.PersistentClient(path=dbconfig.db_name)

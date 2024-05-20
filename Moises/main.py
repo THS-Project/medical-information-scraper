@@ -1,26 +1,31 @@
 import datetime
-import time
 import logging
 import os
 import chroma.write_to_chroma_script as write_chroma
 import chroma.create_chromadb as create_chroma
-
-# Print time and message
-def log(text):
-    log_text = f'{round(time.time() - start_time, 2)}s: {text}'
-    logging.info(log_text)
-    print(log_text)
-    print('=' * 100, '\n')
+import scraper.scraper as scraper
+from Moises.create_log import log
 
 
 def start_project():
     # Check if chroma db exists
-    if not os.path.isfile("chromadb/chroma.sqlite3"):
+    path = "chromadb/chroma.sqlite3"
+    if not os.path.isfile(path):
         create_chroma.create_db()
+    else:
+        log(f'File {path} already exists')
 
 
 if __name__ == '__main__':
-    start_time = time.time()
-
     logging.basicConfig(filename=f"scraper_{datetime.date.today()}.log", level=logging.INFO)
+    # Creat chroma db
+    start_project()
+
+    # Start scraper and transform data
+    scraper.start_scraper()
+
+    # Write to chroma database
     write_chroma.chroma_write()
+
+    # Write to relational database
+

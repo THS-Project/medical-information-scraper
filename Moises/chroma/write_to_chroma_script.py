@@ -1,13 +1,13 @@
 import chromadb
 import Moises.chroma.dbconfig as dbconfig
-# import dbconfig
+
 import os
 import uuid
 import json
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
-from Moises.main import log
+from Moises.create_log import log
 
 
 def chroma_write():

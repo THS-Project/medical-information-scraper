@@ -2,6 +2,7 @@ import os
 import csv
 import time
 import json
+from Moises.create_log import log
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -13,7 +14,10 @@ import requests
 from bs4 import BeautifulSoup
 
 nih = 'https://www.ncbi.nlm.nih.gov'
-terms = ['covid vaccine', 'covid treatment', 'covid symptoms', 'covid sickness']
+terms = ['covid vaccine', 'covid treatment', 'covid symptoms', 'covid sickness', 'swine flu',
+         'bird flu', 'influenza', 'flu vaccine', 'zika', 'common cold', 'cancer', 'headache',
+         'allergy', 'conjunctivitis', 'stomach aches', 'chickenpox', 'monkeypox']
+link_list = []
 
 
 def pubmed_paper_scraper(term):
@@ -34,8 +38,9 @@ def pubmed_paper_scraper(term):
 
         time.sleep(5)
 
+        pages = 50
         # Iterate to n amount of pages
-        for i in range(30):
+        for i in range(pages):
             try:
                 count = 0
                 # Wait for page to reload
@@ -57,7 +62,7 @@ def pubmed_paper_scraper(term):
                             and not element['href'].__contains__('pdf') and not element['href'].__contains__('classic') \
                             and element.text != '\n\n' and not element['href'].__contains__("?report=abstract"):
 
-                        l_paper = {'id': log_count, 'title': element.text, 'link': nih + element['href']}
+                        l_paper = {'id': count, 'title': element.text, 'link': nih + element['href']}
                         links.append(l_paper)
                         count += 1
                         log_count += 1
@@ -275,23 +280,25 @@ def soup_pubmed_scrapper(term, links):
 
 
 # CSV for links' backup
-def create_csv(term, data, records):
+def create_csv(term, data, records = 0):
     csv_file = f'research_{term}_{records}_records'
+    index= 0
     with open(f'data/{csv_file}.csv', 'w', newline='', encoding="utf-8") as file:
         writer = csv.writer(file)
         header = ['Id', 'Title', 'Link']
         writer.writerow(header)
         for element in data:
-            temp = [element['id'], element['title'], element['link']]
+            temp = [index, element['title'], element['link']]
             writer.writerow(temp)
+            index += 1
         log(f'Successfully created file: {csv_file}')
 
 
 # Extract title and link
-def read_csv(term, records):
+def read_csv(csv_file):
     output = []
-    csv_file = f'research_{term}_{records}_records'
-    with open(f'data/{csv_file}.csv', 'r', newline='', encoding="utf-8") as file:
+    # csv_file = f'research_{term}_{records}_records'
+    with open(f'data/{csv_file}', 'r', newline='', encoding="utf-8") as file:
         reader = csv.reader(file)
         next(file)
         for element in reader:
@@ -304,27 +311,55 @@ def read_csv(term, records):
     return output
 
 
-# Print time and message
-def log(text):
-    print(f'{round(time.time() - start_time, 2)}s: {text}')
-    print('=' * 100, '\n')
+# Not in use
+def remove_duplicates(links):
+    temp_list = []
+    for element in links:
+        if len(link_list) < 1:
+            temp_list = links
+            link_list.extend(temp_list)
+            return temp_list, len(temp_list)
+
+        if element not in link_list:
+            temp_list.append(element)
+
+    link_list.extend(temp_list)
+    new_length = len(temp_list)
+    print(link_list)
+    log(f'Removed {len(links)-new_length} duplicates')
+    return temp_list, new_length
 
 
-if __name__ == "__main__":
-    start_time = time.time()
+def link_scraper():
     log("Starting Scraper")
-    term_list = []
+    # Search for links (selenium scraper)
+    for i in terms:
+        count = pubmed_paper_scraper(i)
+        log(f'Scraped {count} records')
+
+
+def start_scraper():
+    log("Starting data cleaning")
+    # term_list = []
     # Search for links (selenium scraper)
     # for i in term:
     #     count = pubmed_paper_scraper(i)
     #     count_list = [i, count]
     #     term_list.append(count_list)
 
-    # Testing one file
-    term_list.append(['covid vaccine', 20])
+    directory = './data'
+    for filename in os.listdir(directory):
+        if filename.endswith('.csv'):
+            links = read_csv(filename)
+            term = filename.split('_')
+            soup_pubmed_scrapper(term[1], links)
 
-    for element in term_list:
-        links = read_csv(element[0], element[1])
-        soup_pubmed_scrapper(element[0], links)
+    # for element in term_list:
+        # links = read_csv(element[0], element[1])
 
-    log("Finished Execution!")
+    log("Finished cleaning the data")
+
+
+if __name__ == "__main__":
+    link_scraper()
+
