@@ -1,10 +1,10 @@
 # Ignore, this is just to test chroma connection and specific cases
 
 import chromadb
-from Moises.chroma import config
+from Moises.chroma import dbconfig
 
-chroma_instance = chromadb.PersistentClient(path='../chroma'+config.db_name)
-collection = chroma_instance.get_collection(name=config.collection_name)
+chroma_instance = chromadb.PersistentClient(path='../chroma'+dbconfig.db_name)
+collection = chroma_instance.get_collection(name=dbconfig.collection_name)
 print(chroma_instance)
 print(collection)
 

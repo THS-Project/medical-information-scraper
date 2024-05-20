@@ -1,7 +1,9 @@
-import config
+import dbconfig
 import chromadb
+from Moises.main import log
 
-client = chromadb.PersistentClient(path=config.db_name)
-collection = client.create_collection(name=config.collection_name)
-print("db created")
+def create_db():
+    client = chromadb.PersistentClient(path=dbconfig.db_name)
+    collection = client.create_collection(name=dbconfig.collection_name)
+    log("DB created")
 

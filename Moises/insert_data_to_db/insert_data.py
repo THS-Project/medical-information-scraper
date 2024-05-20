@@ -3,7 +3,7 @@ import os
 import shutil
 import chromadb
 import nameparser
-from Moises.chroma import config
+from Moises.chroma import dbconfig
 from Moises.model.db import Database
 from Moises.model.author import AuthorDAO
 from Moises.model.keyword import KeywordDAO
@@ -168,8 +168,8 @@ class DataInsert:
     # Deletes chunks from chroma
     def delete_chunks(self, chunk_ids):
         # Connect to Chroma and delete specified chunks
-        chroma_instance = chromadb.PersistentClient(path="../chroma/"+config.db_name)
-        collection = chroma_instance.get_collection(name=config.collection_name)
+        chroma_instance = chromadb.PersistentClient(path="../chroma/"+dbconfig.db_name)
+        collection = chroma_instance.get_collection(name=dbconfig.collection_name)
 
         for chunk_id in chunk_ids:
             chunk = collection.get(chunk_id)

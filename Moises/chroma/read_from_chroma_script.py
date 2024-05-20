@@ -1,10 +1,10 @@
-import config
+import dbconfig
 import chromadb
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
 # Initialize Chroma DB client
-client = chromadb.PersistentClient(path=config.db_name)
-collection = client.get_collection(name=config.collection_name)
+client = chromadb.PersistentClient(path=dbconfig.db_name)
+collection = client.get_collection(name=dbconfig.collection_name)
 
 
 embeddings = HuggingFaceEmbeddings(model_name="BAAI/bge-large-en-v1.5")
