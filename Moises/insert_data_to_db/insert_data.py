@@ -1,8 +1,8 @@
+import chromadb
 import json
+import nameparser
 import os
 import shutil
-import chromadb
-import nameparser
 from Moises.chroma import dbconfig
 from Moises.model.db import Database
 from Moises.model.author import AuthorDAO
@@ -10,6 +10,8 @@ from Moises.model.keyword import KeywordDAO
 from Moises.model.research import ResearchDAO
 from Moises.model.topic import TopicDAO
 from Moises.model.reference import ReferenceDAO
+from Moises.create_log import log
+
 
 class DataInsert:
 
@@ -18,7 +20,6 @@ class DataInsert:
         base_path = os.path.dirname(os.path.abspath(__file__))
         self.backup_dir = os.path.join(base_path, "../json_management/processed_json")
         self.rejected_dir = os.path.join(base_path, "../json_management/rejected_json")
-
 
     # Loops through scraped_json directory and calls insert_data for each JSON
     def insert_data_from_directory(self):
@@ -46,9 +47,7 @@ class DataInsert:
                     # Move rejected file to rejected_json directory
                     shutil.move(filepath, os.path.join(self.rejected_dir, filename))
 
-        print('=' * 30)
-        print("Finished processing files.")
-        print('=' * 30)
+        log("Finished processing files to Postgres.")
 
     def insert_data(self, filepath):
         # Ensure the file is a JSON file
@@ -168,7 +167,7 @@ class DataInsert:
     # Deletes chunks from chroma
     def delete_chunks(self, chunk_ids):
         # Connect to Chroma and delete specified chunks
-        chroma_instance = chromadb.PersistentClient(path="../chroma/"+dbconfig.db_name)
+        chroma_instance = chromadb.PersistentClient(path=dbconfig.db_name)
         collection = chroma_instance.get_collection(name=dbconfig.collection_name)
 
         for chunk_id in chunk_ids:

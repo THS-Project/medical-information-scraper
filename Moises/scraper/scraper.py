@@ -87,28 +87,6 @@ def pubmed_paper_scraper(term):
 
 
 def soup_pubmed_scrapper(term, links):
-    # Code not needed anymore
-    # url = f"https://ncbi.nlm.nih.gov/pmc/?term={term}"
-    # page = requests.get(url)
-    #
-    # soup = BeautifulSoup(page.content, 'html.parser')
-    #
-    # # Get all links that are on the site that are not copies or pdfs
-    # result = soup.findAll('a',  href=True)
-    # links = []
-    # for element in result:
-    #     if '/articles' in element['href'] and 'pdf' not in element['href'] and 'classic' not in element['href']:
-    #         l_paper = {'title': element.text, 'link': nih + element['href']}
-    #         links.append(l_paper)
-    # #print(links)
-    #
-    # print('='*30)
-    # print("Get data from site")
-    # print('=' * 30)
-    #
-    # # testing in only one link
-    # links = [{'title': 'Erythema Migrans-like COVID Vaccine Arm: A Literature Review', 'link': 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8836892/'}]
-
     temp = []
     paper_number = 0
 
@@ -117,7 +95,7 @@ def soup_pubmed_scrapper(term, links):
             continue
 
         title = i['title']
-        page = requests.get(i['link'], headers={'User-Agent':'Mozilla/5.0'})
+        page = requests.get(i['link'], headers={'User-Agent': 'Mozilla/5.0'})
         soup = BeautifulSoup(page.content, 'html.parser')
         abstract = soup.find(attrs={'id':re.compile("abstract")})
         if not abstract:
@@ -139,9 +117,22 @@ def soup_pubmed_scrapper(term, links):
         clean_context_text = []
         for text in context_text:
             text = text.replace('\xa0', ' ')
+            # Using regex to find any variation of the word starting with 'Reference'
+            pattern = r"\bReferences\w*"
+
+            # Search for the first occurrence and slice the text from that position
+            match = re.search(pattern, text)
+
+            if match:
+                text = text[:match.start()].strip()  # Slice and remove everything after the matched word
+            else:
+                print("no match")
+
+            text = text.replace('\xa0', ' ')
             text = text.replace('\n', ' ')
             text = text.replace(':', ': ')
             text = ' '.join(text.split())
+
             clean_context_text.append(text)
 
 
@@ -170,6 +161,7 @@ def soup_pubmed_scrapper(term, links):
         reference_text = [reference.get_text() for reference in references]
         clean_references = []
         for ref in reference_text:
+
             ref = ref.strip()
             ref = ref.replace('\n', ' ')
             ref = re.sub(r'^\d+\.\s', '', ref)
@@ -177,15 +169,9 @@ def soup_pubmed_scrapper(term, links):
             clean_references.append(ref)
 
 
-
-
-
         #fullpaper
         isFullpaper = soup.find_all(class_="tsec sec")
         isFullpaper2_verification = soup.find_all(class_="full-text-links-list")
-
-
-
 
 
         #keywords
@@ -210,9 +196,6 @@ def soup_pubmed_scrapper(term, links):
                         if keyword == keywords_text[-1]:
                             keyword = keyword.rstrip('.')
                         keywords_list.append(keyword)
-
-
-
 
 
         #authors
@@ -240,13 +223,9 @@ def soup_pubmed_scrapper(term, links):
                     clean_authors.append(name)
 
 
-
-
-
         content = soup.contents
         text = soup.text.replace("\n", "")
 
-        #print("Link", i['link'])
         list_temp = [title, i['link'], abstract, content, text, authors_text]
         temp.append(list_temp)
 
@@ -265,7 +244,7 @@ def soup_pubmed_scrapper(term, links):
             "term": term
         }
 
-        directory = '../json_management/scraped_json/'
+        directory = 'json_management/scraped_json/'
         os.makedirs(directory, exist_ok=True)
 
         file_path = os.path.join(directory, f'paper_{term}_{paper_number}.json')
@@ -298,12 +277,12 @@ def create_csv(term, data, records = 0):
 def read_csv(csv_file):
     output = []
     # csv_file = f'research_{term}_{records}_records'
-    with open(f'data/{csv_file}', 'r', newline='', encoding="utf-8") as file:
+    with open(f'scraper/data/{csv_file}', 'r', newline='', encoding="utf-8") as file:
         reader = csv.reader(file)
         next(file)
         for element in reader:
-            # temp = {'id': element[0], 'title': element[1], 'link': element[2]}
-            temp = {'title': element[0], 'link': element[1]}
+            temp = {'id': element[0], 'title': element[1], 'link': element[2]}
+            # temp = {'title': element[0], 'link': element[1]}
             output.append(temp)
         log(f'Successfully read file: {csv_file}')
         file.close()
@@ -340,14 +319,8 @@ def link_scraper():
 
 def start_scraper():
     log("Starting data cleaning")
-    # term_list = []
-    # Search for links (selenium scraper)
-    # for i in term:
-    #     count = pubmed_paper_scraper(i)
-    #     count_list = [i, count]
-    #     term_list.append(count_list)
 
-    directory = './data'
+    directory = 'scraper/data/'
     for filename in os.listdir(directory):
         if filename.endswith('.csv'):
             links = read_csv(filename)

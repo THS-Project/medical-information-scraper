@@ -1,13 +1,11 @@
-import chromadb
-import Moises.chroma.dbconfig as dbconfig
+from Moises.create_log import log
+from Moises.chroma.chromadb_init import get_db
 
+import json
 import os
 import uuid
-import json
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.embeddings import HuggingFaceEmbeddings
 
-from Moises.create_log import log
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 
 def chroma_write():
@@ -16,16 +14,11 @@ def chroma_write():
         chunk_size=1000,
         chunk_overlap=100)
 
-    # embeddings = SentenceTransformerEmbeddingFunction()
-    embeddings = HuggingFaceEmbeddings(model_name="BAAI/bge-large-en-v1.5")
-
-    # Initialize chroma db client
-    client = chromadb.PersistentClient(path=dbconfig.db_name)
-    collection = client.get_collection(dbconfig.collection_name)
-    log('DB accessed')
+    # Initialize Chroma DB client
+    client, collection, embeddings = get_db()
 
     # process each JSON in the /json_management directory
-    directory = 'Moises/json_management/scraped_json'
+    directory = 'json_management/scraped_json'
     file_counter = 0
     for filename in os.listdir(directory):
 
@@ -65,3 +58,5 @@ def chroma_write():
         file_counter += 1
         if file_counter % 50 == 0:
             log(f'{file_counter} files processed')
+
+    log('Finished processing files')
