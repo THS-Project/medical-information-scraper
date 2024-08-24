@@ -1,11 +1,13 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-from controller.research_controller import ResearchController
 from controller.author_controller import AuthorController
-from controller.topic_controller import TopicController
+from controller.classified_text_controller import ClassifiedController
+from controller.chroma_controller import ChromaController
 from controller.keyword_controller import KeywordController
 from controller.reference_controller import ReferenceController
+from controller.research_controller import ResearchController
+from controller.topic_controller import TopicController
 from chroma.read_from_chroma_script import get_data
 
 app = Flask(__name__)
@@ -210,7 +212,29 @@ def get_chroma_record():
     if request.method != 'POST':
         return jsonify("Method is not allowed"), 405
     else:
-        return get_data(request.json)
+        return ChromaController().getChromaResult(request.json)
+
+"""
+===============================
+            Tweet
+===============================
+"""
+
+
+@app.route('/classified', methods=['GET'])
+def get_all_texts():
+    if request.method != 'GET':
+        return jsonify("Method is not allowed"), 405
+    else:
+        return ClassifiedController().getAllTexts()
+
+
+@app.route('/classified/<text_id>', methods=['GET'])
+def get_texts_by_id(text_id):
+    if request.method != 'GET':
+        return jsonify("Method is not allowed"), 405
+    else:
+        return ClassifiedController().getTextsById(text_id)
 
 
 if __name__ == "__main__":

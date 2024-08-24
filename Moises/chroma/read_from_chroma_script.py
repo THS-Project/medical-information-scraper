@@ -1,15 +1,13 @@
 from Moises.chroma.chromadb_init import get_db
 
 
-def get_data(text=None):
+def get_data(query=None) -> dict:
     # Initialize Chroma DB client
     client, collection, embeddings = get_db()
 
     # Get user input
-    if text is None:
+    if query is None:
         query = input("Enter your query: ")
-    else:
-        query = text['text']
 
     # Convert query to vector representation
     query_vector = embeddings.embed_query(query)
@@ -22,7 +20,7 @@ def get_data(text=None):
     # Save ids and texts to list and return them
     for ids, doc in zip(results['ids'], results['documents']):
         for i in range(len(ids)):
-            value = {'title': ids[i], 'context': doc[i]}
+            value = {'ids': ids[i], 'context': doc[i]}
             output.append(value)
 
     print(output)
