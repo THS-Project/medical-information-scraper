@@ -1,6 +1,7 @@
 from flask import jsonify
 from Moises.model.author import AuthorDAO
 
+
 def validate_json(json):
     if 'fname' not in json or 'lname' not in json:
         return None
@@ -27,7 +28,7 @@ class AuthorController:
         dao = AuthorDAO()
         author_list = dao.getAllAuthor()
         author = [self.build_author_dict(row) for row in author_list]
-        return jsonify(author), 400
+        return jsonify(author), 200
 
     def getAuthorById(self, aid):
         dao = AuthorDAO()

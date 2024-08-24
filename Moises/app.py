@@ -1,14 +1,15 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
+
 from controller.research_controller import ResearchController
 from controller.author_controller import AuthorController
 from controller.topic_controller import TopicController
 from controller.keyword_controller import KeywordController
 from controller.reference_controller import ReferenceController
-
-
-
+from chroma.read_from_chroma_script import get_data
 
 app = Flask(__name__)
+CORS(app)
 
 
 @app.route('/')
@@ -197,7 +198,20 @@ def topic_by_id(tid):
         return jsonify("Method is not allowed"), 405
 
 
-# @app.route('/chroma/paper/', method=[''])
+"""
+===============================
+            Chroma
+===============================
+"""
+
+
+@app.route('/chroma', methods=['POST'])
+def get_chroma_record():
+    if request.method != 'POST':
+        return jsonify("Method is not allowed"), 405
+    else:
+        return get_data(request.json)
+
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0', debug=True)

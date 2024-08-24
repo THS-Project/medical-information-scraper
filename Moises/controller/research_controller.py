@@ -31,7 +31,7 @@ class ResearchController:
         dao = ResearchDAO()
         research_list = dao.getAllResearch()
         research = [self.build_research_dict(row) for row in research_list]
-        return jsonify(research), 400
+        return jsonify(research), 200
 
     def getResearchById(self, rid):
         dao = ResearchDAO()

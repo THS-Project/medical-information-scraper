@@ -91,6 +91,10 @@ def soup_pubmed_scrapper(term, links):
     paper_number = 0
 
     for i in links:
+
+        if paper_number >= 2:
+            break
+
         if 'pdf' in i['link'] or 'classic' in i['link']:
             continue
 

@@ -1,0 +1,19 @@
+DROP TABLE contains;
+
+DROP TABLE has;
+
+DROP TABLE partof;
+
+DROP TABLE research_reference;
+
+DROP TABLE chunks;
+
+DROP TABLE author;
+
+DROP TABLE keyword;
+
+DROP TABLE research;
+
+DROP TABLE reference;
+
+DROP TABLE topic;

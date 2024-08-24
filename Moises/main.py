@@ -19,7 +19,8 @@ def start_project():
 
 
 if __name__ == '__main__':
-    read = False
+    # read = False
+    read = True
 
     if read:
         get_data()
