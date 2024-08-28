@@ -1,7 +1,7 @@
 from Moises.chroma.chromadb_init import get_db
 
 
-def get_data(query=None) -> dict:
+def get_data(query=None) -> list:
     # Initialize Chroma DB client
     client, collection, embeddings = get_db()
 

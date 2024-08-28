@@ -1,5 +1,8 @@
+import time
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from dotenv import load_dotenv
 
 from controller.author_controller import AuthorController
 from controller.classified_text_controller import ClassifiedController
@@ -8,6 +11,7 @@ from controller.keyword_controller import KeywordController
 from controller.reference_controller import ReferenceController
 from controller.research_controller import ResearchController
 from controller.topic_controller import TopicController
+
 from chroma.read_from_chroma_script import get_data
 
 app = Flask(__name__)
@@ -229,7 +233,7 @@ def get_all_texts():
         return ClassifiedController().getAllTexts()
 
 
-@app.route('/classified/<text_id>', methods=['GET'])
+@app.route('/classified/<text_id>', methods=['GET', 'POST'])
 def get_texts_by_id(text_id):
     if request.method != 'GET':
         return jsonify("Method is not allowed"), 405
@@ -238,4 +242,5 @@ def get_texts_by_id(text_id):
 
 
 if __name__ == "__main__":
+    load_dotenv()
     app.run(host='0.0.0.0', debug=True)

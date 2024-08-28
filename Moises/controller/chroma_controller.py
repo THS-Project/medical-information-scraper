@@ -1,7 +1,7 @@
 from flask import jsonify
 from Moises.chroma.read_from_chroma_script import get_data
 from Moises.model.reference import ReferenceDAO
-# from Moises.model.chunk
+from Moises.chroma.rag import evaluate_records
 from Moises.model.chroma_records import ChromaDAO
 
 
@@ -31,7 +31,9 @@ class ChromaController:
             output.extend(reference)
             break
 
-        result = {'references': output, 'chroma_value': chroma_dict}
+        text = [element['context'] for element in chroma_dict]
+        chroma_value = evaluate_records(text, data['text'])
+        result = {'references': output, 'chroma_value': chroma_value}
         print(result)
         return jsonify(result), 200
 
