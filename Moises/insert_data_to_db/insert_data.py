@@ -203,7 +203,3 @@ class DataInsert:
         lname = lname.strip()
 
         return fname, lname
-
-
-data_insert = DataInsert()
-data_insert.insert_data_from_directory()

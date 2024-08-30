@@ -6,7 +6,7 @@ from langchain.schema import HumanMessage
 # Define the prompt template
 prompt_template = """You are a medical expert evaluating texts to determine whether
 they contain misinformation. Your goal is to explain why the text is factually inaccurate
-or misleading, using non-technical language. Use the context for the response.
+or misleading, using non-technical language. Use the following context for the response.
 Reference details from the provided context if possible, and if the provided information
 is insufficient, indicate that more context is needed.
 
