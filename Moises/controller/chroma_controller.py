@@ -1,6 +1,5 @@
 from flask import jsonify
 from Moises.chroma.read_from_chroma_script import get_data
-from Moises.model.reference import ReferenceDAO
 from Moises.chroma.rag import evaluate_records
 from Moises.model.chroma_records import ChromaDAO
 
@@ -8,7 +7,7 @@ from Moises.model.chroma_records import ChromaDAO
 class ChromaController:
 
     @staticmethod
-    def build_texts_dict(elements):
+    def build_texts_dict(elements: tuple):
         result = {'text_id': elements[0],
                   't_context': elements[1],
                   'health': elements[2],
@@ -37,7 +36,7 @@ class ChromaController:
         print(result)
         return jsonify(result), 200
 
-    def getTextsById(self, text_id):
+    def getTextsById(self, text_id: str):
         dao = ClassifiedDAO()
         classified_text = dao.getTextById(text_id)
         if not classified_text:

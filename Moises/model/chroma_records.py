@@ -15,10 +15,9 @@ class ChromaDAO:
     def getChromaReferences(self, cid):
         try:
             cur = self.db.connection.cursor()
-            query = """SELECT reference
+            query = """SELECT doi
                     FROM chunks NATURAL INNER JOIN research
                     NATURAL INNER JOIN research_reference
-                    NATURAL INNER JOIN reference
                     WHERE cid = %s"""
             cur.execute(query, (cid,))
             self.db.connection.commit()
