@@ -9,7 +9,8 @@ class ModelPredict:
         model_name = get_pathname(mname, classtype, num)
         self.datatype = datatype
         self.classtype = classtype
-        self.mname, self.tokenizer, self.model, self.device = model_init(model_name, model_test=mname)
+        self.mname, self.tokenizer, self.model, self.device = model_init(model_name, model_test=mname, ctype=classtype,
+                                                                         datatype=datatype)
 
 
     def inference(self, text: str, max_input_tokens=500, max_output_tokens=100) -> str:
@@ -68,5 +69,5 @@ if __name__ == "__main__":
     ctype = 'Seq'
     num = 10
     datatype = 'misinfo'
-    ModelPredict(mname, ctype, num).evaluate_models(text)
+    ModelPredict(mname, ctype, num, datatype).evaluate_models(text)
 
