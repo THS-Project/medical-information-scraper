@@ -5,7 +5,7 @@ from Moises.classifier.classification import ModelPredict
 class ClassifiedController:
 
     @staticmethod
-    def build_texts_dict(elements):
+    def build_texts_dict(elements) -> dict:
         result = {'text_id': elements[0],
                   'context': elements[1],
                   'seed': elements[2]
@@ -39,14 +39,22 @@ class ClassifiedController:
         if not classified_text:
             return jsonify(f"Text with id '{text_id}' was not found"), 404
         result = self.build_texts_dict(classified_text)
-        health = ModelPredict().evaluate_models(result['context'])
+        health = llm_classification(result['context'])
+        result['health'] = health
 
-        if health == 'Related':
+        # If text is not health related finish process
+        if health != 'Related':
+            result['misinformation'] = 'Undetermined'
+            return result
 
-        ModelPredict(mname, ctype, num, datatype).evaluate_models(text)
+        misinfo = llm_classification(result['context'])
+        result['misinformation'] = misinfo
+
+
 
         return jsonify(result), 200
 
-def sequence_classification(text: str):
-    return ModelPredict(mname=, classtype=, num=, datatype=).sequence_classification()
-
+def llm_classification(text: str):
+    return
+#     return ModelPredict(mname=, classtype=, num=, datatype=).evaluate_models(text)
+#
