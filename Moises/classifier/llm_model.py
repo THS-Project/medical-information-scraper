@@ -1,5 +1,4 @@
 from peft import PeftModel
-import os
 from transformers import (AutoModelForSequenceClassification, AutoModelForCausalLM, T5ForSequenceClassification,
                           AutoTokenizer, T5ForConditionalGeneration, BertForSequenceClassification, BertForMaskedLM)
 import torch
@@ -8,7 +7,7 @@ import torch
 models = {'Bert': 'google-bert/bert-base-uncased', 'Llama': 'meta-llama/Llama-2-7b-hf', 'T5': 'google/flan-t5-base'}
 
 
-def model_init(name: str, model_test: str):
+def model_init(name: str, model_test: str, ctype: str, datatype: str):
     device = device_check()
 
     # Select tokenizer for evaluation
@@ -17,7 +16,7 @@ def model_init(name: str, model_test: str):
     tokenizer.add_tokens(['[CLS]', '[MENTION]', '[LINK]', "[PAD]"])
 
     # Initialize model
-    model = sequence_init(name, tokenizer) if os.getenv('CLASS_TYPE') == 'Seq' else causal_init(name, tokenizer)
+    model = sequence_init(name, tokenizer, datatype) if ctype == 'Seq' else causal_init(name, tokenizer)
     model.resize_token_embeddings(len(tokenizer))
     model = PeftModel.from_pretrained(model, name)
 
@@ -25,8 +24,8 @@ def model_init(name: str, model_test: str):
 
 
 # Sequence classification initialization
-def sequence_init(name: str, tokenizer: AutoTokenizer):
-    num_label = 2 if os.getenv('DATA').lower().__contains__("misinfo") else 3
+def sequence_init(name: str, tokenizer: AutoTokenizer, datatype: str):
+    num_label = 2 if datatype.lower().__contains__("misinfo") else 3
     if name.__contains__('T5'):
         model = T5ForSequenceClassification.from_pretrained(models['T5'], num_labels=num_label, load_in_8bit=True)
 

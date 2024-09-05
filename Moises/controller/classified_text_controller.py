@@ -7,9 +7,19 @@ class ClassifiedController:
     @staticmethod
     def build_texts_dict(elements):
         result = {'text_id': elements[0],
-                  't_context': elements[1]
+                  'context': elements[1],
+                  'seed': elements[2]
                   }
         return result
+
+    # @staticmethod
+    # def build_texts_dict(elements):
+    #     result = {'text_id': elements[0],
+    #               't_context': elements[1],
+    #               'health': elements[2],
+    #               'misinformation': elements[3]
+    #               }
+    #     return result
 
     """
     ===========================
@@ -28,14 +38,15 @@ class ClassifiedController:
         classified_text = dao.getTextById(text_id)
         if not classified_text:
             return jsonify(f"Text with id '{text_id}' was not found"), 404
-        health = sequence_classification(classified_text[1])
+        result = self.build_texts_dict(classified_text)
+        health = ModelPredict().evaluate_models(result['context'])
 
         if health == 'Related':
 
+        ModelPredict(mname, ctype, num, datatype).evaluate_models(text)
 
-        result = self.build_texts_dict(classified_text)
         return jsonify(result), 200
-
 
 def sequence_classification(text: str):
     return ModelPredict(mname=, classtype=, num=, datatype=).sequence_classification()
+
