@@ -7,11 +7,11 @@ import torch
 models = {'Bert': 'google-bert/bert-base-uncased', 'Llama': 'meta-llama/Llama-2-7b-hf', 'T5': 'google/flan-t5-base'}
 
 
-def model_init(name: str, model_test: str, ctype: str, datatype: str):
+def model_init(name: str, original_model: str, ctype: str, datatype: str):
     device = device_check()
 
     # Select tokenizer for evaluation
-    token = models[model_test]
+    token = models[original_model]
     tokenizer = AutoTokenizer.from_pretrained(token)
     tokenizer.add_tokens(['[CLS]', '[MENTION]', '[LINK]', "[PAD]"])
 

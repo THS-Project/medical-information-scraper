@@ -1,7 +1,7 @@
 import numpy
 import torch
 
-from llm_model import model_init
+from Moises.classifier.llm_model import model_init
 
 
 class ModelPredict:
@@ -9,8 +9,9 @@ class ModelPredict:
         model_name = get_pathname(mname, classtype, num)
         self.datatype = datatype
         self.classtype = classtype
-        self.mname, self.tokenizer, self.model, self.device = model_init(model_name, model_test=mname, ctype=classtype,
+        self.mname, self.tokenizer, self.model, self.device = model_init(model_name, original_model=mname, ctype=classtype,
                                                                          datatype=datatype)
+        # self.mname, self.tokenizer, self.model, self.device = '', '', '', ''
 
 
     def inference(self, text: str, max_input_tokens=500, max_output_tokens=100) -> str:
@@ -18,8 +19,7 @@ class ModelPredict:
         input_ids = self.tokenizer.encode(text, return_tensors="pt", truncation=True, max_length=max_input_tokens)
 
         # Generate
-        device = self.model.device
-        generated_tokens_with_prompt = self.model.generate(input_ids=input_ids.to(device),
+        generated_tokens_with_prompt = self.model.generate(input_ids=input_ids.to(self.device),
                                                       max_length=max_output_tokens,
                                                       num_return_sequences=1,  # Generate only one sequence
                                                       do_sample=False,  # Disable sampling to get deterministic output
@@ -38,7 +38,7 @@ class ModelPredict:
         # Tokenize
         encoding = self.tokenizer(text, return_tensors="pt")
 
-        encoding = {k: v.to(self.model.device) for k, v in encoding.items()}
+        encoding = {k: v.to(self.device) for k, v in encoding.items()}
         if 'token_type_ids' in encoding and self.mname == "Llama":
             del encoding['token_type_ids']
 

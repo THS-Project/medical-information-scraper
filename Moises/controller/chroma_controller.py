@@ -21,25 +21,16 @@ class ChromaController:
     ===========================
     """
 
-    def getChromaResult(self, data: dict):
-        chroma_dict = get_data(data['text'])
+    def getChromaResult(self, data: str):
+        chroma_dict = get_data(data)
         output = []
         for element in chroma_dict:
             refDao = ChromaDAO()
             reference = refDao.getChromaReferences(element['ids'])
             output.extend(reference)
-            break
 
         text = [element['context'] for element in chroma_dict]
-        chroma_value = evaluate_records(text, data['text'])
+        chroma_value = evaluate_records(text, data)
         result = {'references': output, 'chroma_value': chroma_value}
         print(result)
         return jsonify(result), 200
-
-    def getTextsById(self, text_id: str):
-        dao = ClassifiedDAO()
-        classified_text = dao.getTextById(text_id)
-        if not classified_text:
-            return jsonify(f"Text with id '{text_id}' was not found"), 404
-        author = self.build_texts_dict(classified_text)
-        return jsonify(author), 200
