@@ -28,10 +28,10 @@ if __name__ == '__main__':
     else:
         logging.basicConfig(filename=f"scraper_{datetime.date.today()}.log", level=logging.INFO)
         # Creat chroma db
-        # start_project()
+        start_project()
 
         # Start scraper and transform data
-        start_scraper()
+        # start_scraper()
 
         # Write to chroma database
         write_chroma.chroma_write()
