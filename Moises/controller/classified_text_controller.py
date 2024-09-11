@@ -40,6 +40,7 @@ class ClassifiedController:
         # Validate that text exists
         if not classified_text:
             return jsonify(f"Text with id '{text_id}' was not found"), 404
+
         result = self.build_texts_dict(classified_text)
 
         # Find health classification
@@ -54,8 +55,11 @@ class ClassifiedController:
             misinfo = llm_classification(result['context'], datatype='misinformation')
             result['misinformation'] = misinfo
             if misinfo == 'Misinformation':
+                # Receive rebuttal from Chroma and LLM
                 rebuttal = ChromaController().getChromaResult(result['context'])
                 result.update(rebuttal)
+            else:
+                result.update({"chroma_value": "No misinformation on the text"})
 
         return jsonify(result), 200
 
