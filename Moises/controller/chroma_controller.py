@@ -32,5 +32,4 @@ class ChromaController:
         text = [element['context'] for element in chroma_dict]
         chroma_value = evaluate_records(text, data)
         result = {'references': output, 'chroma_value': chroma_value}
-        print(result)
-        return jsonify(result), 200
+        return result

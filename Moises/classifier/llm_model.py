@@ -25,7 +25,7 @@ def model_init(name: str, original_model: str, ctype: str, datatype: str):
 
 # Sequence classification initialization
 def sequence_init(name: str, tokenizer: AutoTokenizer, datatype: str):
-    num_label = 2 if datatype.lower().__contains__("misinfo") else 3
+    num_label = 2 if datatype.lower().__contains__("misinformation") else 3
     if name.__contains__('T5'):
         model = T5ForSequenceClassification.from_pretrained(models['T5'], num_labels=num_label, load_in_8bit=True)
 

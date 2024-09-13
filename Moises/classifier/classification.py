@@ -32,7 +32,8 @@ class ModelPredict:
         return generated_text_with_prompt[0].strip()
 
     def sequence_classification(self, text: str) -> str:
-        id2label = {0: 'Not Misinformation', 1: 'Misinformation'} if self.datatype == "misinfo" else {0: 'Unrelated',
+        id2label = {0: 'Not Misinformation', 1: 'Misinformation'} if self.datatype == "misinformation" else {
+                                                                                                     0: 'Unrelated',
                                                                                                      1: 'Related',
                                                                                                      2: 'Ambiguous'}
         # Tokenize
@@ -59,7 +60,7 @@ class ModelPredict:
 
 
 def get_pathname(mname: str, classtype: str, num: int) -> str:
-    model_name = f'models/{mname}_{classtype}_LoRA_{str(num)}_epochs'
+    model_name = f'Moises/classifier/models/{mname}_{classtype}_LoRA_{str(num)}_epochs'
     return model_name
 
 

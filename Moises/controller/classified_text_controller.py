@@ -3,6 +3,7 @@ from Moises.model.classified import ClassifiedDAO
 from Moises.classifier.classification import ModelPredict
 from Moises.controller.chroma_controller import ChromaController
 
+
 class ClassifiedController:
 
     @staticmethod
@@ -42,6 +43,7 @@ class ClassifiedController:
             return jsonify(f"Text with id '{text_id}' was not found"), 404
 
         result = self.build_texts_dict(classified_text)
+        print(result)
 
         # Find health classification
         health = llm_classification(result['context'])
@@ -64,6 +66,6 @@ class ClassifiedController:
         return jsonify(result), 200
 
 
-def llm_classification(text: str, datatype: str='health'):
-    return ModelPredict(mname='Bert', classtype='Seq', num=10, datatype=datatype).evaluate_models(text)
-
+def llm_classification(text: str, datatype: str = 'health'):
+    num = 20 if datatype == 'health' else 25
+    return ModelPredict(mname='Bert', classtype='Seq', num=num, datatype=datatype).evaluate_models(text)
