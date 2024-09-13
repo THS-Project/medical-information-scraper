@@ -4,15 +4,13 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
 
-from controller.author_controller import AuthorController
-from controller.classified_text_controller import ClassifiedController
-from controller.chroma_controller import ChromaController
-from controller.keyword_controller import KeywordController
-from controller.reference_controller import ReferenceController
-from controller.research_controller import ResearchController
-from controller.topic_controller import TopicController
-
-from chroma.read_from_chroma_script import get_data
+from Moises.controller.author_controller import AuthorController
+from Moises.controller.classified_text_controller import ClassifiedController
+from Moises.controller.chroma_controller import ChromaController
+from Moises.controller.keyword_controller import KeywordController
+from Moises.controller.reference_controller import ReferenceController
+from Moises.controller.research_controller import ResearchController
+from Moises.controller.topic_controller import TopicController
 
 app = Flask(__name__)
 CORS(app)

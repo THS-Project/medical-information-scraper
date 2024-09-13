@@ -31,7 +31,7 @@ def pubmed_paper_scraper(term):
         # 100-page view
         WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '//*[@id="ps100"]')))
         driver.find_element(By.XPATH,
-                                '//*[@id="EntrezSystem2.PEntrez.PMC.Pmc_ResultsPanel.Pmc_DisplayBar.Display"]').click()
+                            '//*[@id="EntrezSystem2.PEntrez.PMC.Pmc_ResultsPanel.Pmc_DisplayBar.Display"]').click()
         time.sleep(5)
         button = driver.find_element(By.XPATH, '//*[@id="ps100"]')
         button.click()
@@ -91,175 +91,175 @@ def soup_pubmed_scrapper(term, links):
     paper_number = 0
 
     for i in links:
+        try:
+            if paper_number >= 400:
+                break
+            if 'pdf' in i['link'] or 'classic' in i['link']:
+                continue
 
-        if paper_number >= 2:
-            break
+            title = i['title']
+            headers = {
+                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+                              'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
+            }
+            proxy = {
+                'https': 'https://154.236.177.100:1977'
+            }
+            page = requests.get(i['link'], headers=headers, proxies=proxy)
+            soup = BeautifulSoup(page.content, 'html.parser')
+            abstract = soup.find(attrs={'id':re.compile("abstract")})
+            if not abstract:
+                abstract = soup.find(attrs={'id':re.compile("abs")})
 
-        if 'pdf' in i['link'] or 'classic' in i['link']:
-            continue
-
-        title = i['title']
-        page = requests.get(i['link'], headers={'User-Agent': 'Mozilla/5.0'})
-        soup = BeautifulSoup(page.content, 'html.parser')
-        abstract = soup.find(attrs={'id':re.compile("abstract")})
-        if not abstract:
-            abstract = soup.find(attrs={'id':re.compile("abs")})
-
-        if abstract:
-            abstract = abstract.text
-
-
-
-
-        #context
-        contexts = soup.find_all(class_="jig-ncbiinpagenav")
-
-        if not contexts:
-            contexts = soup.find_all(class_='article-details')
-        context_text = [context.get_text() for context in contexts]
-
-        clean_context_text = []
-        for text in context_text:
-            text = text.replace('\xa0', ' ')
-            # Using regex to find any variation of the word starting with 'Reference'
-            pattern = r"\bReferences\w*"
-
-            # Search for the first occurrence and slice the text from that position
-            match = re.search(pattern, text)
-
-            if match:
-                text = text[:match.start()].strip()  # Slice and remove everything after the matched word
-            else:
-                print("no match")
-
-            text = text.replace('\xa0', ' ')
-            text = text.replace('\n', ' ')
-            text = text.replace(':', ': ')
-            text = ' '.join(text.split())
-
-            clean_context_text.append(text)
+            if abstract:
+                abstract = abstract.text
 
 
 
 
-        #doi number
-        dois = soup.find_all(class_="doi")
-        doi_number = [doi.get_text().replace('doi:\xa0', '') for doi in dois]
+            #context
+            contexts = soup.find_all(class_="jig-ncbiinpagenav")
 
-        if not doi_number:
-            dois = soup.find_all(class_="identifier doi")
-            doi_number = [doi.find('a').get_text().strip() for doi in dois]
+            if not contexts:
+                contexts = soup.find_all(class_='article-details')
+            context_text = [context.get_text() for context in contexts]
 
-        doi_number = list(set(doi_number))
+            clean_context_text = []
+            for text in context_text:
+                text = text.replace('\xa0', ' ')
 
+                # Find all matches of the pattern in the text
+                matches = list(re.finditer(r"\b(?:References|REFERENCES)+\w*", text))
 
+                if matches:
+                    last_match = matches[-1]
+                    text = text[:last_match.start()].strip()  # Slice and remove everything after the Reference
+                else:
+                    log(f"No reference in paper {paper_number}")
 
+                text = text.replace('\xa0', ' ')
+                text = text.replace('\n', ' ')
+                text = text.replace(':', ': ')
+                text = ' '.join(text.split())
 
-        #references
-        references = soup.find_all(class_="ref-cit-blk half_rhythm")
-        if not references:
-            references = soup.find_all(class_="references-and-notes-list")
-        if not references:
-            references = soup.find_all(class_="element-citation")
+                clean_context_text.append(text)
 
-        reference_text = [reference.get_text() for reference in references]
-        clean_references = []
-        for ref in reference_text:
+            #cite
+            doi = soup.find(class_='citation-button citation-dialog-trigger ctxp')
+            ref_url = doi.attrs['data-all-citations-url']
+            paper_ref = requests.get(f'https://ncbi.nlm.nih.gov{ref_url}')
+            paper_dict = json.loads(paper_ref.text)
+            doi = paper_dict['nlm']['orig']
 
-            ref = ref.strip()
-            ref = ref.replace('\n', ' ')
-            ref = re.sub(r'^\d+\.\s', '', ref)
-            ref = ' '.join(ref.split())
-            clean_references.append(ref)
+            #references
+            references = soup.find_all(class_="ref-cit-blk half_rhythm")
+            if not references:
+                references = soup.find_all(class_="references-and-notes-list")
+            if not references:
+                references = soup.find_all(class_="element-citation")
 
+            reference_text = [reference.get_text() for reference in references]
+            clean_references = []
+            for ref in reference_text:
 
-        #fullpaper
-        isFullpaper = soup.find_all(class_="tsec sec")
-        isFullpaper2_verification = soup.find_all(class_="full-text-links-list")
-
-
-        #keywords
-        keywords = soup.find_all(class_="kwd-text")
-        keywords_text = [keyword.get_text() for keyword in keywords]
-        keywords_list = [keyword.strip() for text in keywords_text for keyword in text.split(',')]
-
-        if not keywords_list:
-            keywords_parent = soup.find_all('p')
-            for parent in keywords_parent:
-                if 'Keywords:' in parent.text:
-                    keywords_text = parent.text.split(':')[1]
-                    if ';' in keywords_text:
-                        keywords_text = keywords_text.split(';')
-                    elif ',' in keywords_text:
-                        keywords_text = keywords_text.split(',')
-                    else:
-                        keywords_text = [keywords_text]
-
-                    for keyword in keywords_text:
-                        keyword = keyword.strip()
-                        if keyword == keywords_text[-1]:
-                            keyword = keyword.rstrip('.')
-                        keywords_list.append(keyword)
+                ref = ref.strip()
+                ref = ref.replace('\n', ' ')
+                ref = re.sub(r'^\d+\.\s', '', ref)
+                ref = ' '.join(ref.split())
+                clean_references.append(ref)
 
 
-        #authors
-        authors = soup.find_all(class_="contrib-group fm-author")
-        if not authors:
-            authors = soup.find_all(class_="authors-list")
-
-        authors_text = [author.get_text() for author in authors]
-        clean_authors = []
-        for author in authors_text:
-            author = author.strip()
-            author = ''.join([i for i in author if not i.isdigit()])
-            author = ' '.join(author.split())
-            for name in author.split(','):
-                name = name.strip()
-                # Remove unwanted characters and words
-                name = re.sub(r'^[a-z†*]*\s*', '', name)
-                if name in ["MD", "BA", "BS", "PharmD", "MBA", "PhD", "DDS", "MS", "MSc", "MA", "MPH", "MSN", "DNP",
-                            "DO", "DVM", "EdD", "PsyD", "DrPH", "ScD", "PharmB", "BSN", "RN", "∗∗", "∗"]:
-                    continue
-                # Remove "and" from the start of the name
-                if name.startswith('and '):
-                    name = name[4:]
-                if name:
-                    clean_authors.append(name)
+            #fullpaper
+            isFullpaper = soup.find_all(class_="tsec sec")
+            isFullpaper2_verification = soup.find_all(class_="full-text-links-list")
 
 
-        content = soup.contents
-        text = soup.text.replace("\n", "")
+            #keywords
+            keywords = soup.find_all(class_="kwd-text")
+            keywords_text = [keyword.get_text() for keyword in keywords]
+            keywords_list = [keyword.strip() for text in keywords_text for keyword in text.split(',')]
 
-        list_temp = [title, i['link'], abstract, content, text, authors_text]
-        temp.append(list_temp)
+            if not keywords_list:
+                keywords_parent = soup.find_all('p')
+                for parent in keywords_parent:
+                    if 'Keywords:' in parent.text:
+                        keywords_text = parent.text.split(':')[1]
+                        if ';' in keywords_text:
+                            keywords_text = keywords_text.split(';')
+                        elif ',' in keywords_text:
+                            keywords_text = keywords_text.split(',')
+                        else:
+                            keywords_text = [keywords_text]
 
-        doi_string = ""
-        if doi_number[0]:
-            doi_string = doi_number[0]
+                        for keyword in keywords_text:
+                            keyword = keyword.strip()
+                            if keyword == keywords_text[-1]:
+                                keyword = keyword.rstrip('.')
+                            keywords_list.append(keyword)
 
-        paper = {
-            "title": title,
-            "context": clean_context_text,
-            "doi": doi_string,
-            "references": clean_references,
-            "isFullpaper": len(isFullpaper) > 1 and len(isFullpaper2_verification) == 0 and len(clean_references) > 0,
-            "keywords": keywords_list,
-            "authors": clean_authors,
-            "term": term
-        }
 
-        directory = 'json_management/scraped_json/'
-        os.makedirs(directory, exist_ok=True)
+            #authors
+            authors = soup.find_all(class_="contrib-group fm-author")
+            if not authors:
+                authors = soup.find_all(class_="authors-list")
 
-        file_path = os.path.join(directory, f'paper_{term}_{paper_number}.json')
+            authors_text = [author.get_text() for author in authors]
+            clean_authors = []
+            for author in authors_text:
+                author = author.strip()
+                author = ''.join([i for i in author if not i.isdigit()])
+                author = ' '.join(author.split())
+                for name in author.split(','):
+                    name = name.strip()
+                    # Remove unwanted characters and words
+                    name = re.sub(r'^[a-z†*]*\s*', '', name)
+                    if name in ["MD", "BA", "BS", "PharmD", "MBA", "PhD", "DDS", "MS", "MSc", "MA", "MPH", "MSN", "DNP",
+                                "DO", "DVM", "EdD", "PsyD", "DrPH", "ScD", "PharmB", "BSN", "RN", "∗∗", "∗"]:
+                        continue
+                    # Remove "and" from the start of the name
+                    if name.startswith('and '):
+                        name = name[4:]
+                    if name:
+                        clean_authors.append(name)
 
-        with open(file_path, 'w', encoding='utf-8') as f:
-            json.dump(paper, f, ensure_ascii=False)
 
-        if paper_number % 50 == 0:
-            log(f'Paper #{paper_number} with term {term} was jsonify successfully')
+            content = soup.contents
+            text = soup.text.replace("\n", "")
 
-        paper_number += 1
+            list_temp = [title, i['link'], abstract, content, text, authors_text]
+            temp.append(list_temp)
+
+            # doi_string = ""
+            # if doi_number[0]:
+            #     doi_string = doi_number[0]
+
+            paper = {
+                "title": title,
+                "context": clean_context_text,
+                "doi": doi,
+                "references": clean_references,
+                "isFullpaper": len(isFullpaper) > 1 and len(isFullpaper2_verification) == 0 and len(clean_references) > 0,
+                "keywords": keywords_list,
+                "authors": clean_authors,
+                "term": term
+            }
+
+            directory = 'json_management/scraped_json/'
+            os.makedirs(directory, exist_ok=True)
+
+            file_path = os.path.join(directory, f'paper_{term}_{paper_number}.json')
+
+            with open(file_path, 'w', encoding='utf-8') as f:
+                json.dump(paper, f, ensure_ascii=False)
+
+            if paper_number % 50 == 0:
+                log(f'Paper #{paper_number} with term {term} was jsonify successfully')
+
+        except Exception as E:
+            log(f'Paper #{paper_number} failed: {E}')
+
+        finally:
+            paper_number += 1
 
 
 # CSV for links' backup
@@ -327,12 +327,11 @@ def start_scraper():
     directory = 'scraper/data/'
     for filename in os.listdir(directory):
         if filename.endswith('.csv'):
+            if filename.__contains__('covid symptoms') or filename.__contains__('flu vaccine'):
+                continue
             links = read_csv(filename)
             term = filename.split('_')
             soup_pubmed_scrapper(term[1], links)
-
-    # for element in term_list:
-        # links = read_csv(element[0], element[1])
 
     log("Finished cleaning the data")
 

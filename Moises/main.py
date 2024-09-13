@@ -1,13 +1,14 @@
 import datetime
 import logging
 import os
-import chroma.write_to_chroma_script as write_chroma
-import chroma.chromadb_init as create_chroma
+import Moises.chroma.write_to_chroma_script as write_chroma
+import Moises.chroma.chromadb_init as create_chroma
 # import scraper.scraper as scraper
 from Moises.create_log import log
 from Moises.insert_data_to_db.insert_data import DataInsert
 from Moises.chroma.read_from_chroma_script import get_data
 from Moises.pubmed_api.pubmed_records import start_scraper
+
 
 def start_project():
     # Check if chroma db exists

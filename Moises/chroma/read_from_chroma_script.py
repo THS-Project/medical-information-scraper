@@ -13,7 +13,7 @@ def get_data(query=None) -> list:
     query_vector = embeddings.embed_query(query)
 
     # Query Chroma DB with the vector representation
-    results = collection.query(query_embeddings=query_vector, n_results=5)
+    results = collection.query(query_embeddings=query_vector, n_results=8)
 
     output = []
 
