@@ -232,13 +232,13 @@ def get_all_texts():
     else:
         return ClassifiedController().getAllTexts()
 
-
-@app.route('/classified/<text_id>', methods=['GET', 'POST'])
+# Returns classified text with classification and chroma rebuttal
+@app.route('/classified/<text_id>', methods=['GET'])
 def get_texts_by_id(text_id):
     if request.method != 'GET':
         return jsonify("Method is not allowed"), 405
     else:
-        return ClassifiedController().getTextsById(text_id)
+        return ClassifiedController().getTextClassificationById(text_id)
 
 
 if __name__ == "__main__":

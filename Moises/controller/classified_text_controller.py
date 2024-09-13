@@ -34,7 +34,7 @@ class ClassifiedController:
         result = [self.build_texts_dict(row) for row in author_list]
         return jsonify(result), 200
 
-    def getTextClassificationById(self, text_id):
+    def getTextClassificationById(self, text_id: int):
         dao = ClassifiedDAO()
         classified_text = dao.getTextById(text_id)
         # Validate that text exists
