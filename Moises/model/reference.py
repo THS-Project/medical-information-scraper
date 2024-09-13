@@ -36,6 +36,25 @@ class ReferenceDAO:
                 self.db.close()
                 return result
 
+    def getReferenceByList(self, references: list):
+        try:
+            cur = self.db.connection.cursor()
+            query = f"""SELECT * FROM reference WHERE reference in ({','.join(['%s'] * len(references))})"""
+            cur.execute(query, tuple(references))
+            self.db.connection.commit()
+
+        except(Exception, psycopg2.Error) as error:
+            print("Error executing getReferenceByList", error)
+            self.db.connection = None
+
+        finally:
+            if self.db.connection is not None:
+                result = cur.fetchall()
+                cur.close()
+                self.db.close()
+                return result
+
+
     """
     ============================
                 POST
@@ -64,8 +83,6 @@ class ReferenceDAO:
             self.db.connection.commit()
             ref_id = cur.fetchone()
             return ref_id
-
-
 
         except(Exception, psycopg2.Error) as error:
             print("Error executing createReference", error)

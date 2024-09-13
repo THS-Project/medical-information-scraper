@@ -3,6 +3,7 @@ import json
 import nameparser
 import os
 import shutil
+from Moises.controller.reference_controller import ReferenceController
 from Moises.chroma import dbconfig
 from Moises.model.db import Database
 from Moises.model.author import AuthorDAO
@@ -136,22 +137,20 @@ class DataInsert:
     def insert_topic(self, topic, rid, cur):
         # Insert topic
         topic_dao = TopicDAO()
-        topic_dao.createTopic((topic,))
+        tid = topic_dao.createTopic((topic,))
 
         # Check if the topic-research relationship already exists
-        cur.execute("""SELECT tid FROM topic WHERE topic = %s""", (topic,))
-        tid = cur.fetchone()[0]
-        cur.execute("""SELECT 1 FROM has WHERE tid = %s AND rid = %s""", (tid, rid))
+        cur.execute("""SELECT tid FROM has NATURAL INNER JOIN topic WHERE topic = %s AND rid = %s""", (topic, rid))
         if not cur.fetchone():
             # Insert research-topic relationship if it doesn't exist
             cur.execute("""INSERT INTO has (tid, rid) VALUES (%s, %s)""", (tid, rid))
 
-    def insert_references(self, references, rid, cur):
+    def insert_references(self, references: list, rid: int, cur):
+        if len(references) < 1:
+            return
         # Insert references
-        for reference in references:
-            reference_dao = ReferenceDAO()
-            ref_id = reference_dao.createReference((reference,))
-
+        ref_ids = ReferenceController().createReferenceList(references)
+        for ref_id in ref_ids:
             # Check if the research-reference relationship already exists
             cur.execute("""SELECT 1 FROM research_reference WHERE rid = %s AND ref_id = %s""", (rid, ref_id))
             if not cur.fetchone():

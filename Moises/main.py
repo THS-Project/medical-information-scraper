@@ -34,7 +34,7 @@ if __name__ == '__main__':
         # start_scraper()
 
         # Write to chroma database
-        write_chroma.chroma_write()
+        # write_chroma.chroma_write()
 
         # Write to relational database
         data_insert = DataInsert()

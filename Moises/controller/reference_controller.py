@@ -61,6 +61,26 @@ class ReferenceController:
         reference_dict = self.build_reference_dict([ref_id, reference])
         return jsonify(reference_dict), 200
 
+    def createReferenceList(self, references: list):
+        dao = ReferenceDAO()
+        reference = dao.getReferenceByList(references)
+
+        output = [ref[0] for ref in reference] if reference else []
+        listReference = [ref[1] for ref in reference] if reference else []
+        new_elements = list(set(references) - set(listReference)) if reference else references
+
+        for element in new_elements:
+            if element in listReference:
+                continue
+
+            listReference.append(element)
+            dao = ReferenceDAO()
+            ref_id = dao.createReference(element)
+            output.append(ref_id[0])
+        return output
+
+
+
     """
     ===========================
                 PUT
