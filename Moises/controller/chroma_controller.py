@@ -29,7 +29,6 @@ class ChromaController:
             refDao = ChromaDAO()
             reference = refDao.getChromaReferences(element['ids'])
             output.extend(reference)
-            break
 
         text = [element['context'] for element in chroma_dict]
         chroma_value = evaluate_records(text, data['text'])

@@ -25,7 +25,7 @@ def chroma_write():
         if filename.endswith('.json'):
             with open(os.path.join(directory, filename), 'r') as json_file:
                 data = json.load(json_file)
-                context_value = data.get('context')[0]
+                context_value = data.get('context')
 
                 # split text into chunks
                 chunks = text_splitter.split_text(context_value)
@@ -42,6 +42,10 @@ def chroma_write():
                     embeddings_list.append(vector)
                     curid = str(uuid.uuid4())
                     ids.append(curid)
+
+                if len(ids) < 1:
+                    log(f'Failed to embed file #{file_counter}')
+                    continue
 
                 collection.add(
                     embeddings=embeddings_list,

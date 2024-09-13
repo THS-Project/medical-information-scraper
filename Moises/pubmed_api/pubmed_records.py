@@ -96,7 +96,7 @@ def get_paper_info(paper_info: list[dict]) -> dict:
 
         # Add keywords
         if section_type == 'front':
-            keywords_str = paper_dict['infons']['kwd']
+            keywords_str = paper_dict['infons']['kwd'] if 'kwd' in paper_dict['infons'] else ''
             keywords = keywords_str.split(" ")
             output_dict['KEYWORDS'] = list(dict.fromkeys(keywords))
             output_dict['PAPER_REF'] = get_references(paper_dict)
@@ -116,7 +116,7 @@ def jsonify_paper(paper_dict: dict, paper_number: int, term: str) -> bool:
         "title": paper_dict['TITLE'],
         "context": clean_context_text,
         "doi": paper_dict['PAPER_REF'],
-        "references": paper_dict['REF'].split('\n'),
+        "references": paper_dict['REF'].split('\n') if 'REF' in paper_dict else [],
         "isFullpaper": all(elements in paper_dict.keys() for elements in fullPaperVal),
         "keywords": paper_dict['KEYWORDS'],
         "authors": paper_dict['AUTHORS'],
@@ -142,7 +142,7 @@ def requests_papers(papers_list: list[str], term: str) -> list[dict]:
         try:
             api_url = f'https://www.ncbi.nlm.nih.gov/research/bionlp/RESTful/pmcoa.cgi/BioC_json/{paper_id}/unicode'
             data = requests.get(api_url).json()
-            paper_info = data[0]['documents']
+            paper_info = data[0]['documents'] if 'documents' in data[0] else data
             output_dict = get_paper_info(paper_info)
             paperJson = jsonify_paper(output_dict, paper_count, term)
             if paperJson:

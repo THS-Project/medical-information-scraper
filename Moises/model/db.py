@@ -2,6 +2,7 @@ import csv
 
 import psycopg2
 
+
 class Database:
 
     def __init__(self):
@@ -13,7 +14,7 @@ class Database:
                                            port=self.credentials['port'])
 
     def database_cred(self):
-        with open('credentials.csv','r',newline='') as file:
+        with open('Moises/credentials.csv','r',newline='') as file:
             reader = csv.reader(file)
             next(reader)
             host, db, user, password, port = next(reader)
@@ -23,3 +24,4 @@ class Database:
 
     def close(self):
         self.connection.close()
+
