@@ -1,18 +1,18 @@
 import numpy
+import re
 import torch
 
 from Moises.classifier.llm_model import model_init
 
 
 class ModelPredict:
-    def __init__(self, mname: str, classtype: str, num: int, datatype: str):
-        model_name = get_pathname(mname, classtype, num)
+    def __init__(self, model_path: str):
+        model_data = model_path.split('/')[-1]
+        mname, classtype, datatype, num = model_data.split('_')[:-1]
         self.datatype = datatype
         self.classtype = classtype
-        self.mname, self.tokenizer, self.model, self.device = model_init(model_name, original_model=mname, ctype=classtype,
-                                                                         datatype=datatype)
-        # self.mname, self.tokenizer, self.model, self.device = '', '', '', ''
-
+        self.mname, self.tokenizer, self.model, self.device = model_init(model_path, original_model=mname,
+                                                                         ctype=classtype, datatype=datatype)
 
     def inference(self, text: str, max_input_tokens=500, max_output_tokens=100) -> str:
         # Tokenize
@@ -45,18 +45,32 @@ class ModelPredict:
 
         outputs = self.model(**encoding)
 
-        logits = outputs.logits.to(torch.float) if self.mname == 'Bert' else  outputs.logits.detach().cpu().to(torch.float)
+        logits = outputs.logits.to(torch.float) if self.mname == 'Bert' else outputs.logits.detach().cpu().to(torch.float)
         # apply softmax
         softmax = torch.nn.Softmax()
         probs = softmax(logits.squeeze().cpu())
+        print(text, probs)
         idx = numpy.argmax(probs.detach().numpy())
         predicted_labels = id2label[idx]
 
         return predicted_labels
 
-
     def evaluate_models(self, text: str) -> str:
-        return self.sequence_classification(text) if self.classtype == 'Seq' else (self.inference(text))
+        clean_text = self.replace_special_tokens(text)
+        return self.sequence_classification(clean_text) if self.classtype == 'Seq' else (self.inference(clean_text))
+
+    def replace_special_tokens(self, text):
+        # Replace links with [LINK]
+        text = re.sub(r'http\S+|www.\S+', '[LINK]', text)
+        text = re.sub(r'_URL_', '[LINK]', text)
+
+        # Replace mentions with [MENTIONS]
+        text = re.sub(r'@\w+', '[MENTION]', text)
+
+        # Replace hashtags with [HASHTAG]
+        text = re.sub(r'#\w+', '[HASHTAG]', text)
+
+        return text
 
 
 def get_pathname(mname: str, classtype: str, num: int) -> str:
