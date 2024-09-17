@@ -231,7 +231,27 @@ def get_all_texts():
         return jsonify("Method is not allowed"), 405
     else:
         return ClassifiedController().getAllTexts()
-
+@app.route('/classified/page', methods=['GET'])
+def get_texts_by_page():
+    if request.method != 'GET':
+        return jsonify("Method is not allowed"), 405
+    else:
+        try:
+            page = request.args.get('page')
+            amt = request.args.get('amt')
+            if not page or not amt:
+                return jsonify("Missing 'page' or 'amt' parameter"), 400
+            try:
+                data = {
+                    'page': int(page),
+                    'amt': int(amt)
+                }
+            except ValueError:
+                return jsonify("Invalid 'page' or 'amt' parameter. Must be integers."), 400
+            return ClassifiedController().getTextsByPage(data)
+        except Exception as e:
+            print("Error processing request:", e)
+            return jsonify("Invalid JSON data provided"), 404
 
 @app.route('/classified/<text_id>', methods=['GET', 'POST'])
 def get_texts_by_id(text_id):
