@@ -17,16 +17,6 @@ Text: {text}
 
 """
 
-# prompt_template_2 = """
-# You are a medical expert evaluating misinformation social media texts and will
-# evaluate the text and only the text. You need to find the topic and important keywords
-# to be rewrite for a vector database query. Your output should be a coherent sentence that will
-# helps find the best result in the vector database.
-# Return only the vector database query as string, no prefix.
-#
-# text: {text}
-# """
-
 prompt_template_2 = """
 You are a medical expert evaluating misinformation in social media texts. Your task is to analyze
 the provided text to identify its topic and important keywords. Your output should be a single
@@ -56,7 +46,7 @@ def generate_prompt(text: str, summary: bool, context: str = ''):
 
 def evaluate_records(text: str, context: list[str] = None, summary=False) -> str:
     # Initialize the OpenAI LLM model
-    temp = 0.7 if not summary else 0.4
+    temp = 0.8 if not summary else 0.4
     llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=temp)
     research_context = '\n\n'.join(context) if context else ''
     formatted_prompt = generate_prompt(text, summary, research_context)
@@ -70,3 +60,7 @@ def evaluate_records(text: str, context: list[str] = None, summary=False) -> str
     print(output)
 
     return output
+
+
+# def evaluate_records_ollama(text: str, context: list[str] = None, summary=False) -> str:
+#

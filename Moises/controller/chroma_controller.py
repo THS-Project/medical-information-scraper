@@ -1,18 +1,9 @@
 from Moises.chroma.read_from_chroma_script import get_data
 from Moises.chroma.rag import evaluate_records
 from Moises.model.chroma_records import ChromaDAO
-
+from Moises.ollama.ollama_api import get_record
 
 class ChromaController:
-
-    @staticmethod
-    def build_texts_dict(elements: tuple):
-        result = {'text_id': elements[0],
-                  't_context': elements[1],
-                  'health': elements[2],
-                  'misinformation': elements[3]
-                  }
-        return result
 
     """
     ===========================
@@ -21,15 +12,16 @@ class ChromaController:
     """
 
     def getChromaResult(self, data: str):
-        eval_text = evaluate_records(data, summary=True)
+        eval_text = get_record(data)
         chroma_dict = get_data(eval_text)
-        output = {}
+        output = []
         for element in chroma_dict:
             refDao = ChromaDAO()
             reference = refDao.getChromaReferences(element['ids'])
             if reference is not None:
-                output[reference[0]] = reference[1]
+                output.append(reference[0])
+        output.sort()
         text = [element['context'] for element in chroma_dict]
         chroma_value = evaluate_records(data, text)
-        result = {'references': list(output.values()).sort(), 'chroma_value': chroma_value}
+        result = {'references': output, 'chroma_value': chroma_value}
         return result

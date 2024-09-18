@@ -63,6 +63,7 @@ class ClassifiedController:
             if misinfo == 'Misinformation':
                 # Receive rebuttal from Chroma and LLM
                 rebuttal = ChromaController().getChromaResult(result['t_context'])
+                print(rebuttal)
                 result.update(rebuttal)
             else:
                 result.update({"chroma_value": "No misinformation on the text"})
