@@ -1,4 +1,5 @@
 import os
+import re
 
 from flask import jsonify
 from Moises.model.classified import ClassifiedDAO
@@ -46,9 +47,10 @@ class ClassifiedController:
 
         result = self.build_texts_dict(classified_text)
         health_model, misinformation_model = self.get_model_paths()
+        eval_text = replace_special_tokens(result['t_context'])
 
         # Find health classification
-        health = llm_classification(result['t_context'], health_model)
+        health = llm_classification(eval_text, health_model)
         result['health'] = health
 
         # If text is not health related finish process
@@ -56,7 +58,7 @@ class ClassifiedController:
             result['misinformation'] = 'Undetermined'
         else:
             # Find misinformation classification and reference in chroma
-            misinfo = llm_classification(result['t_context'], misinformation_model)
+            misinfo = llm_classification(eval_text, misinformation_model)
             result['misinformation'] = misinfo
             if misinfo == 'Misinformation':
                 # Receive rebuttal from Chroma and LLM
@@ -79,6 +81,20 @@ class ClassifiedController:
         misinformation_model_path = dao.getModelPath(misinfo)
 
         return health_model_path, misinformation_model_path
+
+
+def replace_special_tokens(text):
+    # Replace links with [LINK]
+    text = re.sub(r'http\S+|www.\S+', '[LINK]', text)
+    text = re.sub(r'_URL_', '[LINK]', text)
+
+    # Replace mentions with [MENTIONS]
+    text = re.sub(r'@\w+', '[MENTION]', text)
+
+    # Replace hashtags with [HASHTAG]
+    text = re.sub(r'#\w+', '[HASHTAG]', text)
+
+    return text
 
 
 def llm_classification(text: str, model_path: str):

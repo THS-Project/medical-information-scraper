@@ -15,7 +15,7 @@ class ChromaDAO:
     def getChromaReferences(self, cid):
         try:
             cur = self.db.connection.cursor()
-            query = """SELECT doi
+            query = """SELECT rid, doi
                     FROM chunks NATURAL INNER JOIN research
                     NATURAL INNER JOIN research_reference
                     WHERE cid = %s"""
@@ -28,10 +28,10 @@ class ChromaDAO:
 
         finally:
             if self.db.connection is not None:
-                result = cur.fetchall()
+                result = cur.fetchone()
                 cur.close()
                 self.db.close()
-                return result
+                return result if result else None
 
     def getTextById(self, text_id):
         try:

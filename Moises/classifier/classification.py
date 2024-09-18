@@ -1,5 +1,4 @@
 import numpy
-import re
 import torch
 
 from Moises.classifier.llm_model import model_init
@@ -56,21 +55,7 @@ class ModelPredict:
         return predicted_labels
 
     def evaluate_models(self, text: str) -> str:
-        clean_text = self.replace_special_tokens(text)
-        return self.sequence_classification(clean_text) if self.classtype == 'Seq' else (self.inference(clean_text))
-
-    def replace_special_tokens(self, text):
-        # Replace links with [LINK]
-        text = re.sub(r'http\S+|www.\S+', '[LINK]', text)
-        text = re.sub(r'_URL_', '[LINK]', text)
-
-        # Replace mentions with [MENTIONS]
-        text = re.sub(r'@\w+', '[MENTION]', text)
-
-        # Replace hashtags with [HASHTAG]
-        text = re.sub(r'#\w+', '[HASHTAG]', text)
-
-        return text
+        return self.sequence_classification(text) if self.classtype == 'Seq' else (self.inference(text))
 
 
 def get_pathname(mname: str, classtype: str, num: int) -> str:

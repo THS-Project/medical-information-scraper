@@ -6,33 +6,60 @@ from langchain.schema import HumanMessage
 # Define the prompt template
 prompt_template = """You are a medical expert evaluating texts to determine whether
 they contain misinformation. Your goal is to explain why the text is factually inaccurate
-or misleading, using non-technical language. Use the following context for the response.
-Reference details from the provided context if possible, and if the provided information
+or misleading, using non-technical language. Use the following medical information for the response.
+Reference details from the provided medical information and if the provided information
 is insufficient, indicate that more context is needed.
 
 Your response should be concise (2-3 sentences).
 
-Context: {context}
+medical information: {context}
 Text: {text}
 
+"""
 
+# prompt_template_2 = """
+# You are a medical expert evaluating misinformation social media texts and will
+# evaluate the text and only the text. You need to find the topic and important keywords
+# to be rewrite for a vector database query. Your output should be a coherent sentence that will
+# helps find the best result in the vector database.
+# Return only the vector database query as string, no prefix.
+#
+# text: {text}
+# """
+
+prompt_template_2 = """
+You are a medical expert evaluating misinformation in social media texts. Your task is to analyze
+the provided text to identify its topic and important keywords. Your output should be a single
+coherent sentence that summarizes the topic and helps find the best result in a vector database. 
+
+Return only the vector database query as a string, with no additional text.
+
+text: {text}
 """
 
 
 # Create a LangChain PromptTemplate object
-def generate_prompt(context: str, text: str):
-    prompt = PromptTemplate(
-        template=prompt_template,
-        input_variables=["context", "text"]
-    )
-    return prompt.format(context=context, text=text)
+def generate_prompt(text: str, summary: bool, context: str = ''):
+    if not summary:
+        prompt = PromptTemplate(
+            template=prompt_template,
+            input_variables=["text", "context"]
+        )
+        return prompt.format(context=context, text=text)
+    else:
+        prompt = PromptTemplate(
+            template=prompt_template_2,
+            input_variables=["text"]
+        )
+        return prompt.format(text=text)
 
 
-def evaluate_records(context: list[str], text: str) -> str:
+def evaluate_records(text: str, context: list[str] = None, summary=False) -> str:
     # Initialize the OpenAI LLM model
-    llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.7)
-    research_context = ''.join(context)
-    formatted_prompt = generate_prompt(research_context, text)
+    temp = 0.7 if not summary else 0.4
+    llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=temp)
+    research_context = '\n\n'.join(context) if context else ''
+    formatted_prompt = generate_prompt(text, summary, research_context)
 
     # Prepare the prompt as a HumanMessage (the correct input for ChatOpenAI)
     human_message = [HumanMessage(content=formatted_prompt)]
