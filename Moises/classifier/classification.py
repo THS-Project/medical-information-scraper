@@ -46,7 +46,7 @@ class ModelPredict:
 
         logits = outputs.logits.to(torch.float) if self.mname == 'Bert' else outputs.logits.detach().cpu().to(torch.float)
         # apply softmax
-        softmax = torch.nn.Softmax()
+        softmax = torch.nn.Softmax(dim=-1)
         probs = softmax(logits.squeeze().cpu())
         print(text, probs)
         idx = numpy.argmax(probs.detach().numpy())

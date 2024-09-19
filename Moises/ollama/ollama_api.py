@@ -34,17 +34,5 @@ if __name__ == "__main__":
     ineffective #flu vaccine at @housecommerce #suboversight  bets on fauci saying universal #influenza vax in 5,
     maybe 10 years? my preview here: https://t.co/fsqefwhik7  #cdc #fda #vaccines"""
 
-    # sentence = """@freebeecee @veritasever @3worldmom @geoffschuler @erikwilson1975 @1002loola @itsmepanda1 @rustypee4
-    # @knakatani @joejoe80495073 @emmagpaley @carlsmythe @grumfromnorwich @bigbalddr @katieicunurse @chrisvcsefalvay
-    # @janem1276 @joneselenore21 @wandaspangler2 @awithonelison @angryamygdala @stayyoungaft50 @justice69hall @plasticdoe
-    # @boglethemind @mj1117d @1mayo10 @emotrano @dkegel @noahsmittysbro @thefrankmanmn @chrisjohnsonmd @gretchenscience
-    # @pileofgoop @_cwn @kenjaques @svagdis @docmeehan @and_kell @just4thecause @mmelgar09 @jkellyca @eldrave20 @siubhan_h
-    # @lalaruefrench75 @ithinkaboutbeer @doritmi @rbuzzy1111 @rachlittlewood @lilearthling369 yeah! you guys are
-    # forgetting that not everyone who had measles died! some people just got very, very, very sick!! pfft... vaccines.
-    # you guys are such corporate shills!! probably work for pfizer and monsanto!
-    # """
-
-    # prompt = "ebola is a fake virus, it does not kill people"
-
     get_record(sentence)
 

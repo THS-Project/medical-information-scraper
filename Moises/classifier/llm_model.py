@@ -1,8 +1,10 @@
 from peft import PeftModel
 from transformers import (AutoModelForSequenceClassification, AutoModelForCausalLM, T5ForSequenceClassification,
-                          AutoTokenizer, T5ForConditionalGeneration, BertForSequenceClassification, BertForMaskedLM)
+                          AutoTokenizer, T5ForConditionalGeneration, BertForSequenceClassification, BertForMaskedLM,
+                          logging)
 import torch
 
+logging.set_verbosity_error()
 
 models = {'Bert': 'google-bert/bert-base-uncased', 'Llama': 'meta-llama/Llama-2-7b-hf', 'T5': 'google/flan-t5-base'}
 
