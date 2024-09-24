@@ -59,3 +59,21 @@ class ClassifiedDAO:
                 cur.close()
                 self.db.close()
                 return result[0] if result else None
+
+    def getTextsByPage(self, healthid: str, misinfoid: str, page, amt):
+        cur = self.db.connection.cursor()
+        off = (page - 1) * amt
+        query = """(SELECT T.textid, T.context
+                    FROM llm.texts as T NATURAL INNER JOIN llm.validation_data as V INNER JOIN llm.trained_model as M
+                    ON V.seed_num = M.seed_num
+                    WHERE tmid = %s AND dtype = 1)
+                    UNION
+                    (SELECT T.textid, T.context
+                    FROM llm.texts as T NATURAL INNER JOIN llm.validation_data as V INNER JOIN llm.trained_model as M
+                    ON V.seed_num = M.seed_num
+                    WHERE tmid = %s AND dtype = 2)
+                    OFFSET %s
+                    LIMIT %s"""
+        cur.execute(query, (healthid, misinfoid, off, amt))
+        text_list = [row for row in cur]
+        return text_list

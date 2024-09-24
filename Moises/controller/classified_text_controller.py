@@ -38,6 +38,16 @@ class ClassifiedController:
         result.extend(temp_list)
         return jsonify(result), 200
 
+    def getTextsByPage(self, data):
+        health = os.getenv('HEALTH_ID')
+        misinfo = os.getenv('MISINFO_ID')
+        page = data['page']
+        amt = data['amt']
+        dao = ClassifiedDAO()
+        text_list = dao.getTextsByPage(health, misinfo, page, amt)
+        texts = [self.build_texts_dict(row) for row in text_list]
+        return jsonify(texts), 200
+
     def getTextClassificationById(self, text_id: int):
         dao = ClassifiedDAO()
         classified_text = dao.getTextById(text_id)
@@ -100,4 +110,3 @@ def replace_special_tokens(text):
 
 def llm_classification(text: str, model_path: str):
     return ModelPredict(model_path).evaluate_models(text)
-
