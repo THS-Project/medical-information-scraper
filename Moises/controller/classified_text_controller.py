@@ -32,3 +32,11 @@ class ClassifiedController:
             return jsonify(f"Text with id '{text_id}' was not found"), 404
         author = self.build_texts_dict(classified_text)
         return jsonify(author), 200
+
+    def getTextsByPage(self, data):
+        page = data['page']
+        amt = data['amt']
+        dao = ClassifiedDAO()
+        author_list = dao.getTextsByPage(page,amt)
+        author = [self.build_texts_dict(row) for row in author_list]
+        return jsonify(author), 200

@@ -38,3 +38,14 @@ class ClassifiedDAO:
                 cur.close()
                 self.db.close()
                 return result
+
+    def getTextsByPage(self, page, amt):
+        cur = self.db.connection.cursor()
+        off = (page - 1) * amt
+        query = """SELECT text_id, t_context, health_classification, misinformation_classification
+                    FROM classified_text 
+                    OFFSET %s
+                    LIMIT %s"""
+        cur.execute(query, (off, amt))
+        author_list = [row for row in cur]
+        return author_list
