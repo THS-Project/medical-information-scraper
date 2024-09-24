@@ -1,7 +1,7 @@
 from Moises.chroma.read_from_chroma_script import get_data
-from Moises.chroma.rag import evaluate_records
+# from Moises.chroma.rag import evaluate_records
 from Moises.model.chroma_records import ChromaDAO
-from Moises.ollama.ollama_api import get_record
+from Moises.ollama.ollama_api import evaluate_records
 
 class ChromaController:
 
@@ -13,7 +13,7 @@ class ChromaController:
 
     def getChromaResult(self, data: str):
         # Get query for chroma
-        chroma_query = get_record(data)
+        chroma_query = evaluate_records(data)
         # Get data from chroma
         chroma_dict = get_data(chroma_query)
         output = []
