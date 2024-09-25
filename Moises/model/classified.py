@@ -72,6 +72,7 @@ class ClassifiedDAO:
                     FROM llm.texts as T NATURAL INNER JOIN llm.validation_data as V INNER JOIN llm.trained_model as M
                     ON V.seed_num = M.seed_num
                     WHERE tmid = %s AND dtype = 2)
+                    ORDER BY 1
                     OFFSET %s
                     LIMIT %s"""
         cur.execute(query, (healthid, misinfoid, off, amt))
