@@ -48,6 +48,11 @@ class ClassifiedController:
         texts = [self.build_texts_dict(row) for row in text_list]
         return jsonify(texts), 200
 
+    def getTextCount(self):
+        dao = ClassifiedDAO()
+        total_count = dao.getTextCount()
+        return jsonify({'total': total_count}), 200
+
     def getTextClassificationById(self, text_id: int):
         dao = ClassifiedDAO()
         classified_text = dao.getTextById(text_id)

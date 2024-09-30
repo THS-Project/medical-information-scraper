@@ -230,6 +230,13 @@ def get_all_texts():
         return jsonify("Method is not allowed"), 405
     else:
         return ClassifiedController().getAllTexts()
+
+@app.route('/classified/count', methods=['GET'])
+def get_text_count():
+    if request.method != 'GET':
+        return jsonify("Method is not allowed"), 405
+    else:
+        return ClassifiedController().getTextCount()
 @app.route('/classified/page', methods=['GET'])
 def get_texts_by_page():
     if request.method != 'GET':
