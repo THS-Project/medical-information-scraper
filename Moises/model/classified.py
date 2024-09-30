@@ -20,6 +20,14 @@ class ClassifiedDAO:
         author_list = [row for row in cur]
         return author_list
 
+    def getTextCount(self):
+        cur = self.db.connection.cursor()
+        query = """SELECT count(*)
+                            FROM classified_text"""
+        cur.execute(query)
+        total_count = cur.fetchone()[0]
+        return total_count
+
     def getTextById(self, text_id):
         try:
             cur = self.db.connection.cursor()
