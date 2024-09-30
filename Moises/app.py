@@ -214,7 +214,8 @@ def get_chroma_record():
     if request.method != 'POST':
         return jsonify("Method is not allowed"), 405
     else:
-        return ChromaController().getChromaResult(request.json)
+        data = request.json
+        return ChromaController().getChromaResult(data['text'])
 
 """
 ===============================
