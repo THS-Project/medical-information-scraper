@@ -55,7 +55,13 @@ class ModelPredict:
         return predicted_labels
 
     def evaluate_models(self, text: str) -> str:
-        return self.sequence_classification(text) if self.classtype == 'Seq' else (self.inference(text))
+        prompt = f"""Is the text separated by triple ticks health misinformation or not.
+                ---{text}---""" if self.datatype == 'misinformation' else \
+                f'''Is the text separated by triple ticks related, unrelated, or ambiguous to health?
+                Your answer must be a single word: related, unrelated, or ambiguous.
+                ---{text}---'''
+
+        return self.sequence_classification(prompt) if self.classtype == 'Seq' else (self.inference(prompt))
 
 
 def get_pathname(mname: str, classtype: str, num: int) -> str:
