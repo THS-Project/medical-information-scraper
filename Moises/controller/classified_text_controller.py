@@ -83,7 +83,8 @@ class ClassifiedController:
             else:
                 result.update({"chroma_value": "No misinformation on the text"})
 
-        return jsonify(result), 200
+        return result
+        # return jsonify(result), 200
 
     def get_model_paths(self):
         # Get all health related texts
