@@ -46,23 +46,21 @@ def generate_prompt(text: str, summary: bool, context: str = ''):
         return prompt.format(text=text)
 
 
-# def evaluate_records(text: str, context: list[str] = None, summary=False) -> str:
-#     # Initialize the OpenAI LLM model
-#     temp = 0.8 if not summary else 0.4
-#     llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=temp)
-#     research_context = '\n\n'.join(context) if context else ''
-#     formatted_prompt = generate_prompt(text, summary, research_context)
-#
-#     # Prepare the prompt as a HumanMessage (the correct input for ChatOpenAI)
-#     human_message = [HumanMessage(content=formatted_prompt)]
-#
-#     # Call the LLM model with the formatted prompt
-#     response = llm(human_message)
-#     output = response.content
-#     print(output)
-#
-#     return output
+def evaluate_records(text: str, context: list[str] = None, summary=False) -> str:
+    # Initialize the OpenAI LLM model
+    temp = 0.8 if not summary else 0.4
+    llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=temp)
+    research_context = '\n\n'.join(context) if context else ''
+    formatted_prompt = generate_prompt(text, summary, research_context)
+
+    # Prepare the prompt as a HumanMessage (the correct input for ChatOpenAI)
+    human_message = [HumanMessage(content=formatted_prompt)]
+
+    # Call the LLM model with the formatted prompt
+    response = llm(human_message)
+    output = response.content
+    print(output)
+
+    return output
 
 
-# def evaluate_records_ollama(text: str, context: list[str] = None, summary=False) -> str:
-#
