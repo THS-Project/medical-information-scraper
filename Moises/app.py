@@ -1,12 +1,19 @@
+import time
+
 from flask import Flask, request, jsonify
-from controller.research_controller import ResearchController
-from controller.author_controller import AuthorController
-from controller.topic_controller import TopicController
-from controller.keyword_controller import KeywordController
+from flask_cors import CORS
+from dotenv import load_dotenv
 
-
+from Moises.controller.author_controller import AuthorController
+from Moises.controller.classified_text_controller import ClassifiedController
+from Moises.controller.chroma_controller import ChromaController
+from Moises.controller.keyword_controller import KeywordController
+from Moises.controller.reference_controller import ReferenceController
+from Moises.controller.research_controller import ResearchController
+from Moises.controller.topic_controller import TopicController
 
 app = Flask(__name__)
+CORS(app)
 
 
 @app.route('/')
@@ -97,13 +104,47 @@ def keyword_by_id(kid):
             PartOf
 ===============================
 """
+"""
+=================================
+            Reference
+=================================
+"""
+@app.route('/reference', methods=['GET', 'POST'])
+def reference():
+    if request.method == 'GET':
+        return ReferenceController().getAllReferences()
+
+    elif request.method == 'POST':
+        return ReferenceController().createReference(request.json)
+
+    else:
+        return jsonify("Method is not allowed"), 405
+
+
+@app.route('/reference/<ref_id>', methods=['GET', 'PUT'])
+def reference_by_id(ref_id):
+    if request.method == 'GET':
+        return ReferenceController().getReferenceById(ref_id)
+
+    elif request.method == 'PUT':
+        return ReferenceController().updateReference(ref_id, request.json)
+
+    else:
+        return jsonify("Method is not allowed"), 405
+
+
+"""
+=================================
+    Research_Reference 
+=================================
+"""
+
 
 """
 =================================
             Research
 =================================
 """
-
 
 @app.route('/research', methods=['GET', 'POST'])
 def research():
@@ -161,5 +202,72 @@ def topic_by_id(tid):
         return jsonify("Method is not allowed"), 405
 
 
+"""
+===============================
+            Chroma
+===============================
+"""
+
+
+@app.route('/chroma', methods=['POST'])
+def get_chroma_record():
+    if request.method != 'POST':
+        return jsonify("Method is not allowed"), 405
+    else:
+        data = request.json
+        return ChromaController().getChromaResult(data['text'])
+
+"""
+===============================
+            Tweet
+===============================
+"""
+
+
+@app.route('/classified', methods=['GET'])
+def get_all_texts():
+    if request.method != 'GET':
+        return jsonify("Method is not allowed"), 405
+    else:
+        return ClassifiedController().getAllTexts()
+
+@app.route('/classified/count', methods=['GET'])
+def get_text_count():
+    if request.method != 'GET':
+        return jsonify("Method is not allowed"), 405
+    else:
+        return ClassifiedController().getTextCount()
+@app.route('/classified/page', methods=['GET'])
+def get_texts_by_page():
+    if request.method != 'GET':
+        return jsonify("Method is not allowed"), 405
+    else:
+        try:
+            page = request.args.get('page')
+            amt = request.args.get('amt')
+            if not page or not amt:
+                return jsonify("Missing 'page' or 'amt' parameter"), 400
+            try:
+                data = {
+                    'page': int(page),
+                    'amt': int(amt)
+                }
+            except ValueError:
+                return jsonify("Invalid 'page' or 'amt' parameter. Must be integers."), 400
+            return ClassifiedController().getTextsByPage(data)
+        except Exception as e:
+            print("Error processing request:", e)
+            return jsonify("Invalid JSON data provided"), 404
+
+# Returns classified text with classification and chroma rebuttal
+@app.route('/classified/<text_id>', methods=['GET', 'POST'])
+def get_texts_by_id(text_id):
+    if request.method != 'GET':
+        return jsonify("Method is not allowed"), 405
+    else:
+        return ClassifiedController().getTextClassificationById(text_id)
+
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    load_dotenv()
+    app.run(host='0.0.0.0', debug=True)

@@ -45,11 +45,27 @@ class KeywordDAO:
     def createKeyword(self, keyword):
         try:
             cur = self.db.connection.cursor()
+
+            # check if keyword already exists
+            query_check = """SELECT kid from keyword where keyword = %s"""
+            cur.execute(query_check, (keyword, ))
+            existing_keyword = cur.fetchone()
+
+            # if keyword already exists
+            if existing_keyword:
+                print(f"Keyword already exists with kid: {existing_keyword[0]}")
+                return existing_keyword[0]
+
+            # if keyword does not exist
             query = """INSERT INTO keyword(kid, keyword)
                         VALUES(DEFAULT, %s) RETURNING kid"""
             query_values = (keyword,)
             cur.execute(query, query_values)
             self.db.connection.commit()
+            kid = cur.fetchone()
+            return kid
+
+
 
         except(Exception, psycopg2.Error) as error:
             print("Error executing createKeyword", error)
@@ -57,10 +73,8 @@ class KeywordDAO:
 
         finally:
             if self.db.connection is not None:
-                kid = cur.fetchone()
                 cur.close()
                 self.db.close()
-                return kid
 
     """
     ===========================

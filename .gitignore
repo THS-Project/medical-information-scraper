@@ -1,5 +1,13 @@
 *.xml
-
+./.idea
 *.iml
-
-
+*.bin
+*.pyc
+*.sqlite3
+*.json
+*.pickle
+*.meta
+.idea/shelf/Uncommitted_changes_before_Checkout_at_5_17_24,_9_59_AM_\[Changes\]1/shelved.patch
+./.DS_Store
+.env
+*.log
